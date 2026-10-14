@@ -1,0 +1,2096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CHRONOS-OMEGA // Precision Gear &amp; Linkage Kinetic Automaton</title>
+  <style>
+    :root {
+      --panel: rgba(15, 23, 42, 0.86);
+      --border: rgba(56, 189, 248, 0.34);
+      --accent: #0ea5e9;
+      --accent-orange: #f97316;
+      --accent-teal: #14b8a6;
+      --accent-gold: #fbbf24;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 42%, #334155 0%, #1e293b 56%, #0f172a 100%);
+      font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+      color: var(--text);
+      transition: background 0.35s ease;
+    }
+
+    body.bright-lab {
+      background: radial-gradient(circle at 50% 38%, #e2e8f0 0%, #cbd5e1 54%, #94a3b8 100%);
+    }
+
+    #canvas-container {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+    }
+
+    /* Engineering Telemetry HUD */
+    .hud-header {
+      position: fixed;
+      top: 18px;
+      left: 22px;
+      z-index: 10;
+      pointer-events: none;
+      border-left: 4px solid var(--accent-orange);
+      padding: 10px 22px 10px 16px;
+      background: rgba(15, 23, 42, 0.84);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 0 8px 8px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
+      border-right: 1px solid rgba(255, 255, 255, 0.14);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.34);
+    }
+
+    .hud-title {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 2.4px;
+      text-transform: uppercase;
+      color: #ffffff;
+    }
+
+    .hud-subtitle {
+      font-size: 10px;
+      letter-spacing: 1.4px;
+      color: #38bdf8;
+      margin-top: 3px;
+    }
+
+    .telemetry-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 9px;
+      font-size: 10.5px;
+      color: #cbd5e1;
+    }
+
+    .telemetry-item span {
+      color: var(--accent-gold);
+      font-weight: 700;
+    }
+
+    /* Camera Inspection Presets Bar */
+    .cam-bar {
+      position: fixed;
+      bottom: 18px;
+      left: 22px;
+      z-index: 10;
+      display: flex;
+      gap: 7px;
+      background: rgba(15, 23, 42, 0.84);
+      padding: 8px 10px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+    }
+
+    .cam-btn {
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      color: #e2e8f0;
+      padding: 6px 10px;
+      font-family: inherit;
+      font-size: 9.5px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.16s ease;
+    }
+
+    .cam-btn:hover {
+      border-color: #38bdf8;
+      color: #ffffff;
+      background: rgba(14, 165, 233, 0.25);
+    }
+
+    /* Right Control Panel */
+    .control-panel {
+      position: fixed;
+      top: 18px;
+      right: 22px;
+      width: 348px;
+      z-index: 10;
+      background: var(--panel);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+      max-height: calc(100vh - 36px);
+      overflow-y: auto;
+    }
+
+    .panel-section-title {
+      font-size: 9.5px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #38bdf8;
+      margin-bottom: 9px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(56, 189, 248, 0.22);
+      padding-bottom: 4px;
+    }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 13px;
+    }
+
+    .mode-btn {
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      color: #e2e8f0;
+      padding: 8px 9px;
+      font-family: inherit;
+      font-size: 9.5px;
+      font-weight: 600;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: all 0.18s ease;
+      text-align: left;
+    }
+
+    .mode-btn:hover {
+      border-color: #38bdf8;
+      color: #ffffff;
+      background: rgba(14, 165, 233, 0.22);
+    }
+
+    .mode-btn.active {
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.38), rgba(14, 165, 233, 0.38));
+      border-color: #fb923c;
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(249, 115, 22, 0.28);
+    }
+
+    .control-row {
+      margin-bottom: 10px;
+    }
+
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #e2e8f0;
+      margin-bottom: 4px;
+    }
+
+    .control-val {
+      color: #38bdf8;
+      font-weight: 700;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 5px;
+      background: rgba(148, 163, 184, 0.3);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #f97316;
+      border: 2px solid #ffffff;
+      cursor: pointer;
+    }
+
+    .toggle-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .toggle-btn {
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.32);
+      color: #cbd5e1;
+      padding: 7px 6px;
+      font-family: inherit;
+      font-size: 9.5px;
+      font-weight: 600;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: all 0.2s;
+    }
+
+    .toggle-btn.active {
+      border-color: #14b8a6;
+      color: #ccfbf1;
+      background: rgba(20, 184, 166, 0.26);
+    }
+
+    .ratio-legend {
+      margin-top: 12px;
+      padding: 8px 10px;
+      background: rgba(2, 6, 23, 0.55);
+      border-radius: 5px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      font-size: 9.5px;
+      line-height: 1.55;
+      color: #94a3b8;
+    }
+
+    .ratio-legend strong {
+      color: #e2e8f0;
+    }
+  </style>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body class="bright-lab">
+  <div id="canvas-container"></div>
+
+  <!-- Top-Left Engineering Telemetry HUD -->
+  <div class="hud-header">
+    <div class="hud-title">CHRONOS-OMEGA // PRECISION EPICYCLIC &amp; RACK-CRANK AUTOMATON</div>
+    <div class="hud-subtitle">100% MATHEMATICALLY MESHED INVOLUTE GEAR TRAINS, RACKS, CAMS &amp; 4-BAR LINKAGES</div>
+    <div class="telemetry-bar">
+      <div class="telemetry-item">EPICYCLIC LAW: <span>Ns(24) + 2·Np(12) = Nr(48)</span></div>
+      <div class="telemetry-item">BEVEL PTO: <span>48T : 16T (3.00:1)</span></div>
+      <div class="telemetry-item">RACK STROKE: <span id="hud-rack">42.5 mm</span></div>
+      <div class="telemetry-item">CARRIER ω: <span id="hud-rpm">128.4 RPM</span></div>
+    </div>
+  </div>
+
+  <!-- Camera Close-Up Inspection Presets -->
+  <div class="cam-bar">
+    <button class="cam-btn" data-cam="overview">OVERVIEW</button>
+    <button class="cam-btn" data-cam="core">EPICYCLIC CORE MESH</button>
+    <button class="cam-btn" data-cam="rack">RACK &amp; CRANK ARM</button>
+    <button class="cam-btn" data-cam="cam">CROWN CAM &amp; IRIS</button>
+  </div>
+
+  <!-- Interactive Control Deck -->
+  <div class="control-panel">
+    <div class="panel-section-title">
+      <span>KINEMATIC DRIVE PROGRAM</span>
+      <span id="cycle-indicator">SYNCHRONIZED</span>
+    </div>
+
+    <div class="mode-grid">
+      <button class="mode-btn active" data-mode="0">01 // CONTINUOUS DRIVE</button>
+      <button class="mode-btn" data-mode="1">02 // ESCAPEMENT TICK</button>
+      <button class="mode-btn" data-mode="2">03 // COUNTER-DIFF</button>
+      <button class="mode-btn" data-mode="3">04 // MANUAL CAD SCRUB</button>
+    </div>
+
+    <div class="panel-section-title">
+      <span>MECHANICAL TRANSMISSION CONTROLS</span>
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span>PRIME MOVER SPEED</span>
+        <span class="control-val" id="val-speed">1.00x</span>
+      </div>
+      <input type="range" id="slider-speed" min="0" max="2.5" step="0.05" value="1.0" />
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span>RACK-AND-PINION MORPH EXTENSION</span>
+        <span class="control-val" id="val-morph">0.50</span>
+      </div>
+      <input type="range" id="slider-morph" min="0" max="1" step="0.01" value="0.50" />
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span>MANUAL DRIVE SHAFT ANGLE (RAD)</span>
+        <span class="control-val" id="val-shaft">0.00</span>
+      </div>
+      <input type="range" id="slider-shaft" min="0" max="12.566" step="0.01" value="0" />
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span>AXIAL LAYER SEPARATION</span>
+        <span class="control-val" id="val-explode">0%</span>
+      </div>
+      <input type="range" id="slider-explode" min="0" max="1" step="0.01" value="0" />
+    </div>
+
+    <div class="panel-section-title">
+      <span>SHADOWS &amp; GLOBAL ILLUMINATION</span>
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span>SHADOW DEPTH &amp; CONTRAST</span>
+        <span class="control-val" id="val-shadow">86%</span>
+      </div>
+      <input type="range" id="slider-shadow" min="0.2" max="1.0" step="0.02" value="0.86" />
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span>GI STUDIO EXPOSURE</span>
+        <span class="control-val" id="val-exposure">1.25</span>
+      </div>
+      <input type="range" id="slider-exposure" min="0.7" max="2.1" step="0.05" value="1.25" />
+    </div>
+
+    <div class="toggle-row">
+      <button class="toggle-btn active" id="btn-automorph">AUTO-RACK MORPH</button>
+      <button class="toggle-btn active" id="btn-orbit">ORBIT CAM</button>
+      <button class="toggle-btn active" id="btn-brightbg">DAYLIGHT LAB</button>
+      <button class="toggle-btn" id="btn-wireframe">X-RAY CAD</button>
+    </div>
+
+    <div class="ratio-legend">
+      <strong>VERIFIED KINEMATIC CHAIN:</strong><br />
+      • <strong>Planetary Core:</strong> 24T Sun + 6×12T Planets + 48T Internal Ring<br />
+      • <strong>Radial PTO:</strong> 48T Bevel Crown → 12×16T Radial Shafts (3:1)<br />
+      • <strong>Morph Drive:</strong> 12×14T Pinions → 12 Linear Toothed Racks<br />
+      • <strong>Wing Linkage:</strong> 16T:24T Crank → 4-Bar Con-Rod → 20T:14T:18T Geared Folding Blade &amp; Caliper<br />
+      • <strong>Axial Towers:</strong> 3-Lobe Wave Cam → 12 Roller Tappets &amp; Iris Links
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    // ============================================================================
+    // ALL-CAPS ENGINEERING CONSTANTS & USER INPUT VARIABLES
+    // ============================================================================
+    const GEAR_MODULE = 0.12; // Fundamental pitch module m (Pitch Radius = m * N / 2)
+    const SUN_TEETH = 24;     // Pitch Radius = 1.44
+    const PLANET_TEETH = 12;  // Pitch Radius = 0.72 (Orbit Radius = 1.44 + 0.72 = 2.16)
+    const RING_TEETH = 48;    // Ns + 2*Np = 24 + 24 = 48 (Internal Pitch Radius = 2.88)
+    const PLANET_COUNT = 6;   // (Ns + Nr) / 6 = 72 / 6 = 12 (integer -> symmetric tooth meshing!)
+
+    const RADIAL_SECTOR_COUNT = 12;
+    const CROWN_BEVEL_TEETH = 48;
+    const PTO_PINION_TEETH = 16; // Exact 3:1 bevel step-up ratio
+
+    const RACK_PINION_TEETH = 14; // Pitch Radius = 0.84, Linear Rack Pitch = pi * m = 0.37699
+    const CRANK_DRIVE_TEETH = 16; // Driven by radial spline shaft
+    const CRANK_WHEEL_TEETH = 24; // Exact 2:3 reduction to eccentric crank disc
+
+    const SHOULDER_GEAR_TEETH = 20;
+    const IDLER_GEAR_TEETH = 14;
+    const ELBOW_GEAR_TEETH = 16;
+    const WRIST_GEAR_TEETH = 12;
+
+    const CAM_LOBES = 3;
+    const IRIS_PETAL_COUNT = 12;
+
+    let DRIVE_SPEED_MULTIPLIER = 1.0;
+    let MANUAL_MORPH_EXTENSION = 0.5;
+    let MANUAL_DRIVE_SHAFT_ANGLE = 0.0;
+    let AXIAL_EXPLODE_FACTOR = 0.0;
+    let SHADOW_CONTRAST_LEVEL = 0.86;
+    let GI_EXPOSURE_LEVEL = 1.25;
+
+    let ACTIVE_DRIVE_MODE = 0; // 0: Continuous, 1: Escapement Tick, 2: Counter-Diff, 3: Manual Scrub
+    let AUTO_MORPH_ENABLED = true;
+    let AUTO_ORBIT_ENABLED = true;
+    let DAYLIGHT_LAB_ENABLED = true;
+    let WIREFRAME_XRAY_ENABLED = false;
+
+    // Derived exact pitch radii
+    const R_SUN = (GEAR_MODULE * SUN_TEETH) * 0.5;             // 1.44
+    const R_PLANET = (GEAR_MODULE * PLANET_TEETH) * 0.5;       // 0.72
+    const R_RING = (GEAR_MODULE * RING_TEETH) * 0.5;           // 2.88
+    const R_PLANET_ORBIT = R_SUN + R_PLANET;                   // 2.16
+
+    const R_RACK_PINION = (GEAR_MODULE * RACK_PINION_TEETH) * 0.5; // 0.84
+    const R_CRANK_DRIVE = (GEAR_MODULE * CRANK_DRIVE_TEETH) * 0.5; // 0.96
+    const R_CRANK_WHEEL = (GEAR_MODULE * CRANK_WHEEL_TEETH) * 0.5; // 1.44
+
+    const R_SHOULDER = (GEAR_MODULE * SHOULDER_GEAR_TEETH) * 0.5;  // 1.20
+    const R_IDLER = (GEAR_MODULE * IDLER_GEAR_TEETH) * 0.5;        // 0.84
+    const R_ELBOW = (GEAR_MODULE * ELBOW_GEAR_TEETH) * 0.5;        // 0.96
+    const R_WRIST = (GEAR_MODULE * WRIST_GEAR_TEETH) * 0.5;        // 0.72
+
+    // ============================================================================
+    // SCENE, CAMERA & HIGH-CONTRAST 4K SHADOW RENDERER
+    // ============================================================================
+    const container = document.getElementById('canvas-container');
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      powerPreference: 'high-performance'
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = GI_EXPOSURE_LEVEL;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    container.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 200);
+    camera.position.set(14.5, 9.2, 16.5);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.maxDistance = 48;
+    controls.minDistance = 2.5;
+    controls.autoRotate = AUTO_ORBIT_ENABLED;
+    controls.autoRotateSpeed = 0.45;
+
+    let cameraTransition = null;
+
+    // ============================================================================
+    // STUDIO IBL ENVIRONMENT & CNC MACHINED SURFACE TEXTURE
+    // ============================================================================
+    function createStudioIBL(rendererInstance) {
+      const envScene = new THREE.Scene();
+      const dome = new THREE.Mesh(
+        new THREE.SphereGeometry(32, 32, 24),
+        new THREE.MeshBasicMaterial({ color: 0x111827, side: THREE.BackSide })
+      );
+      envScene.add(dome);
+
+      const softboxes = [
+        { pos: [14, 22, 14], size: [18, 18], color: 0xffffff },
+        { pos: [22, 4, -8], size: [16, 10], color: 0xfed7aa },
+        { pos: [-20, 10, -12], size: [16, 12], color: 0x7dd3fc },
+        { pos: [-10, -2, 22], size: [14, 10], color: 0x5eead4 },
+        { pos: [0, -20, 0], size: [28, 28], color: 0x475569 }
+      ];
+      softboxes.forEach((sb) => {
+        const m = new THREE.Mesh(
+          new THREE.PlaneGeometry(sb.size[0], sb.size[1]),
+          new THREE.MeshBasicMaterial({ color: sb.color, side: THREE.DoubleSide })
+        );
+        m.position.set(...sb.pos);
+        m.lookAt(0, 0, 0);
+        envScene.add(m);
+      });
+
+      const pmrem = new THREE.PMREMGenerator(rendererInstance);
+      const tex = pmrem.fromScene(envScene, 0.035).texture;
+      pmrem.dispose();
+      return tex;
+    }
+
+    scene.environment = createStudioIBL(renderer);
+    scene.environmentIntensity = 0.42;
+
+    function createCNCBrushedTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = '#d6dade';
+      ctx.fillRect(0, 0, 512, 512);
+
+      for (let i = 0; i < 3600; i++) {
+        const y = Math.random() * 512;
+        const v = 188 + Math.floor(Math.random() * 44);
+        ctx.fillStyle = `rgb(${v},${v},${v})`;
+        ctx.fillRect(0, y, 512, 1);
+      }
+
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 3;
+      for (let x = 64; x < 512; x += 128) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, 512);
+        ctx.stroke();
+      }
+      for (let y = 64; y < 512; y += 128) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(512, y);
+        ctx.stroke();
+      }
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(2, 2);
+      return tex;
+    }
+
+    const cncTexture = createCNCBrushedTexture();
+
+    // ============================================================================
+    // POLYCHROME HOROLOGICAL & AEROSPACE MATERIALS (TUNED FOR CRISP SHADOWS)
+    // ============================================================================
+    const MATERIALS = {
+      pearlCeramic: new THREE.MeshPhysicalMaterial({
+        color: 0xf8fafc,
+        map: cncTexture,
+        metalness: 0.15,
+        roughness: 0.28,
+        clearcoat: 0.6,
+        clearcoatRoughness: 0.18,
+        bumpMap: cncTexture,
+        bumpScale: 0.015
+      }),
+      aerospaceOrange: new THREE.MeshPhysicalMaterial({
+        color: 0xf97316,
+        map: cncTexture,
+        metalness: 0.28,
+        roughness: 0.3,
+        clearcoat: 0.55,
+        bumpMap: cncTexture,
+        bumpScale: 0.014
+      }),
+      cobaltAnodized: new THREE.MeshPhysicalMaterial({
+        color: 0x2563eb,
+        map: cncTexture,
+        metalness: 0.4,
+        roughness: 0.28,
+        clearcoat: 0.55,
+        bumpMap: cncTexture,
+        bumpScale: 0.014
+      }),
+      iridescentTeal: new THREE.MeshPhysicalMaterial({
+        color: 0x0d9488,
+        map: cncTexture,
+        metalness: 0.38,
+        roughness: 0.26,
+        iridescence: 0.7,
+        iridescenceIOR: 1.4,
+        clearcoat: 0.5,
+        bumpMap: cncTexture,
+        bumpScale: 0.014
+      }),
+      crimsonServo: new THREE.MeshPhysicalMaterial({
+        color: 0xe11d48,
+        map: cncTexture,
+        metalness: 0.34,
+        roughness: 0.28,
+        clearcoat: 0.55,
+        bumpMap: cncTexture,
+        bumpScale: 0.012
+      }),
+      champagneGold: new THREE.MeshStandardMaterial({
+        color: 0xfbbf24,
+        map: cncTexture,
+        metalness: 0.56,
+        roughness: 0.25,
+        bumpMap: cncTexture,
+        bumpScale: 0.012
+      }),
+      berylliumCopper: new THREE.MeshStandardMaterial({
+        color: 0xd97706,
+        map: cncTexture,
+        metalness: 0.54,
+        roughness: 0.27,
+        bumpMap: cncTexture,
+        bumpScale: 0.012
+      }),
+      brushedSteel: new THREE.MeshStandardMaterial({
+        color: 0xe2e8f0,
+        map: cncTexture,
+        metalness: 0.46,
+        roughness: 0.26,
+        bumpMap: cncTexture,
+        bumpScale: 0.014
+      }),
+      mirrorChrome: new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        metalness: 0.72,
+        roughness: 0.14
+      }),
+      machinedSlate: new THREE.MeshStandardMaterial({
+        color: 0x475569,
+        map: cncTexture,
+        metalness: 0.42,
+        roughness: 0.34,
+        bumpMap: cncTexture,
+        bumpScale: 0.016
+      }),
+      cyanIndicator: new THREE.MeshStandardMaterial({
+        color: 0x38bdf8,
+        emissive: 0x0284c7,
+        emissiveIntensity: 0.75,
+        roughness: 0.2
+      })
+    };
+
+    // ============================================================================
+    // MATHEMATICALLY EXACT INVOLUTE GEAR, INTERNAL RING & LINEAR RACK BUILDERS
+    // ============================================================================
+    /**
+     * Builds an external involute-profile spur/bevel gear where:
+     * - Pitch radius Rp = (module * teeth) / 2
+     * - Tooth #0 peak (addendum) is centered at angle = 0
+     * - Tooth valley #0 (dedendum) is centered at angle = pi / teeth
+     * This convention guarantees exact analytical phase meshing across all gears.
+     */
+    function createExactSpurGearGeometry(module, teeth, thickness, boreRadius = 0.2, spoked = true, bevel = 0.016) {
+      const pitchRadius = (module * teeth) * 0.5;
+      const addendum = module * 0.95;
+      const dedendum = module * 1.15;
+      const rOuter = pitchRadius + addendum;
+      const rRoot = Math.max(boreRadius + 0.08, pitchRadius - dedendum);
+
+      const shape = new THREE.Shape();
+      const step = (Math.PI * 2) / teeth;
+
+      for (let i = 0; i < teeth; i++) {
+        const centerAngle = i * step;
+        // Symmetric trapezoidal-involute tooth centered at centerAngle:
+        // [-0.50, -0.34] root valley
+        // [-0.34, -0.14] rising involute flank passing pitch circle at -0.25
+        // [-0.14, +0.14] addendum tip centered at 0
+        // [+0.14, +0.34] falling involute flank passing pitch circle at +0.25
+        // [+0.34, +0.50] root valley
+        const aRoot1 = centerAngle - step * 0.5;
+        const aFlank1 = centerAngle - step * 0.34;
+        const aPitch1 = centerAngle - step * 0.24;
+        const aTip1 = centerAngle - step * 0.13;
+        const aTip2 = centerAngle + step * 0.13;
+        const aPitch2 = centerAngle + step * 0.24;
+        const aFlank2 = centerAngle + step * 0.34;
+
+        if (i === 0) {
+          shape.moveTo(Math.cos(aRoot1) * rRoot, Math.sin(aRoot1) * rRoot);
+        } else {
+          shape.lineTo(Math.cos(aRoot1) * rRoot, Math.sin(aRoot1) * rRoot);
+        }
+        shape.lineTo(Math.cos(aFlank1) * rRoot, Math.sin(aFlank1) * rRoot);
+        shape.lineTo(Math.cos(aPitch1) * pitchRadius, Math.sin(aPitch1) * pitchRadius);
+        shape.lineTo(Math.cos(aTip1) * rOuter, Math.sin(aTip1) * rOuter);
+        shape.lineTo(Math.cos(aTip2) * rOuter, Math.sin(aTip2) * rOuter);
+        shape.lineTo(Math.cos(aPitch2) * pitchRadius, Math.sin(aPitch2) * pitchRadius);
+        shape.lineTo(Math.cos(aFlank2) * rRoot, Math.sin(aFlank2) * rRoot);
+      }
+      shape.closePath();
+
+      // Central shaft bore hole
+      if (boreRadius > 0.02) {
+        const boreHole = new THREE.Path();
+        boreHole.absarc(0, 0, boreRadius, 0, Math.PI * 2, false);
+        shape.holes.push(boreHole);
+      }
+
+      // Lightening web holes for larger gears
+      const radialWebSpan = rRoot - boreRadius;
+      if (spoked && radialWebSpan > 0.48) {
+        const midR = (rRoot + boreRadius) * 0.5;
+        const holeR = radialWebSpan * 0.28;
+        const count = 6;
+        for (let k = 0; k < count; k++) {
+          const ang = (k / count) * Math.PI * 2;
+          const h = new THREE.Path();
+          h.absarc(Math.cos(ang) * midR, Math.sin(ang) * midR, holeR, 0, Math.PI * 2, false);
+          shape.holes.push(h);
+        }
+      }
+
+      const geom = new THREE.ExtrudeGeometry(shape, {
+        steps: 1,
+        depth: thickness,
+        bevelEnabled: true,
+        bevelThickness: bevel,
+        bevelSize: bevel,
+        bevelSegments: 2
+      });
+      geom.center();
+      return geom;
+    }
+
+    /**
+     * Builds an INTERNAL Ring Gear where teeth point INWARD toward the center.
+     * At angle = 0, there is an inward VALLEY (radius = Rp + addendum) so an external
+     * planet gear located along +X with a tooth peak at angle = 0 meshes directly!
+     */
+    function createExactInternalRingGearGeometry(module, teeth, outerRimRadius, thickness, bevel = 0.016) {
+      const pitchRadius = (module * teeth) * 0.5;
+      const rValley = pitchRadius + module * 1.1; // Outward recess for planet tooth tip
+      const rTip = pitchRadius - module * 0.92;   // Inward-pointing ring tooth tip
+
+      const shape = new THREE.Shape();
+      shape.absarc(0, 0, outerRimRadius, 0, Math.PI * 2, false);
+
+      const innerToothPath = new THREE.Path();
+      const step = (Math.PI * 2) / teeth;
+
+      for (let i = 0; i < teeth; i++) {
+        // Shift by step * 0.5 so angle = 0 is a valley (recess) and angle = pi/teeth is an inward tooth peak
+        const valleyAngle = i * step;
+        const aV1 = valleyAngle - step * 0.14;
+        const aV2 = valleyAngle + step * 0.14;
+        const aP1 = valleyAngle + step * 0.25;
+        const aT1 = valleyAngle + step * 0.36;
+        const aT2 = valleyAngle + step * 0.64;
+        const aP2 = valleyAngle + step * 0.75;
+
+        if (i === 0) {
+          innerToothPath.moveTo(Math.cos(aV1) * rValley, Math.sin(aV1) * rValley);
+        } else {
+          innerToothPath.lineTo(Math.cos(aV1) * rValley, Math.sin(aV1) * rValley);
+        }
+        innerToothPath.lineTo(Math.cos(aV2) * rValley, Math.sin(aV2) * rValley);
+        innerToothPath.lineTo(Math.cos(aP1) * pitchRadius, Math.sin(aP1) * pitchRadius);
+        innerToothPath.lineTo(Math.cos(aT1) * rTip, Math.sin(aT1) * rTip);
+        innerToothPath.lineTo(Math.cos(aT2) * rTip, Math.sin(aT2) * rTip);
+        innerToothPath.lineTo(Math.cos(aP2) * pitchRadius, Math.sin(aP2) * pitchRadius);
+      }
+      innerToothPath.closePath();
+      shape.holes.push(innerToothPath);
+
+      const geom = new THREE.ExtrudeGeometry(shape, {
+        steps: 1,
+        depth: thickness,
+        bevelEnabled: true,
+        bevelThickness: bevel,
+        bevelSize: bevel,
+        bevelSegments: 2
+      });
+      geom.center();
+      return geom;
+    }
+
+    /**
+     * Builds a Linear Toothed Gear Rack with exact linear circular pitch p = Math.PI * module.
+     * Pitch line is at Y = 0! Tooth tips rise to Y = +0.95*m, valleys drop to Y = -1.15*m,
+     * and the solid rack beam extends down to Y = -baseHeight.
+     * At X = 0, there is a tooth valley so a Pinion centered at (0, Rp) with tooth #0
+     * pointing straight down (-Y) meshes at X = 0 with zero phase error!
+     */
+    function createExactLinearRackGeometry(module, numTeeth, thickness, baseHeight = 0.28) {
+      const linearPitch = Math.PI * module;
+      const totalLength = numTeeth * linearPitch;
+      const startX = -totalLength * 0.5;
+      const yTip = module * 0.92;
+      const yRoot = -module * 1.12;
+      const yBottom = -baseHeight;
+
+      const shape = new THREE.Shape();
+      shape.moveTo(startX, yBottom);
+      shape.lineTo(startX, yRoot);
+
+      for (let i = 0; i < numTeeth; i++) {
+        // Place tooth centered at (i + 0.5) * linearPitch so X = k * linearPitch is always a valley
+        const xValleyStart = startX + i * linearPitch;
+        const xFlank1 = xValleyStart + linearPitch * 0.16;
+        const xTip1 = xValleyStart + linearPitch * 0.36;
+        const xTip2 = xValleyStart + linearPitch * 0.64;
+        const xFlank2 = xValleyStart + linearPitch * 0.84;
+        const xValleyEnd = xValleyStart + linearPitch;
+
+        shape.lineTo(xFlank1, yRoot);
+        shape.lineTo(xTip1, yTip);
+        shape.lineTo(xTip2, yTip);
+        shape.lineTo(xFlank2, yRoot);
+        shape.lineTo(xValleyEnd, yRoot);
+      }
+
+      shape.lineTo(startX + totalLength, yBottom);
+      shape.closePath();
+
+      const geom = new THREE.ExtrudeGeometry(shape, {
+        steps: 1,
+        depth: thickness,
+        bevelEnabled: true,
+        bevelThickness: 0.012,
+        bevelSize: 0.012,
+        bevelSegments: 2
+      });
+      geom.translate(0, 0, -thickness * 0.5);
+      return geom;
+    }
+
+    function createHelicalSpringGeometry(radius = 0.11, turns = 7, height = 1.0, wireRadius = 0.02) {
+      const pts = [];
+      const segments = turns * 18;
+      for (let i = 0; i <= segments; i++) {
+        const t = i / segments;
+        const a = t * turns * Math.PI * 2;
+        pts.push(new THREE.Vector3(Math.cos(a) * radius, (t - 0.5) * height, Math.sin(a) * radius));
+      }
+      return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), segments, wireRadius, 8, false);
+    }
+
+    /**
+     * Exact analytical 2D circle-circle intersection solver for 4-Bar / Slider-Crank linkages:
+     * Given Point A (x1, y1) with link length L1 and Point B (x2, y2) with link length L2,
+     * returns the exact elbow/pin joint coordinate P = (px, py) such that |P - A| = L1 and |P - B| = L2.
+     */
+    function solveTwoCircleIntersection(x1, y1, L1, x2, y2, L2, chooseUpper = true) {
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const d = Math.hypot(dx, dy);
+      const clampedD = Math.min(Math.max(d, Math.abs(L1 - L2) + 0.001), L1 + L2 - 0.001);
+      const a = (L1 * L1 - L2 * L2 + clampedD * clampedD) / (2 * clampedD);
+      const h = Math.sqrt(Math.max(0, L1 * L1 - a * a));
+      const mx = x1 + (a * dx) / clampedD;
+      const my = y1 + (a * dy) / clampedD;
+      const sign = chooseUpper ? 1 : -1;
+      return {
+        x: mx + (sign * h * -dy) / clampedD,
+        y: my + (sign * h * dx) / clampedD
+      };
+    }
+
+    // ============================================================================
+    // MASTER MACHINE HIERARCHY
+    // ============================================================================
+    const machineRoot = new THREE.Group();
+    scene.add(machineRoot);
+
+    // Shared precision geometries
+    const sunGearGeo = createExactSpurGearGeometry(GEAR_MODULE, SUN_TEETH, 0.28, 0.42, true);
+    const planetGearGeo = createExactSpurGearGeometry(GEAR_MODULE, PLANET_TEETH, 0.28, 0.2, false);
+    const internalRingGeo = createExactInternalRingGearGeometry(GEAR_MODULE, RING_TEETH, 3.25, 0.28);
+
+    // ============================================================================
+    // STAGE 1: CENTRAL 3-DECK EPICYCLIC PLANETARY DIFFERENTIAL CORE
+    // ============================================================================
+    // Central main spline drive shaft running the full height of the contraption
+    const mainDriveShaftGroup = new THREE.Group();
+    machineRoot.add(mainDriveShaftGroup);
+
+    const centralShaftMesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.38, 0.38, 8.6, 24),
+      MATERIALS.mirrorChrome
+    );
+    mainDriveShaftGroup.add(centralShaftMesh);
+
+    // Spline keyways along central shaft so you can see it turning
+    for (let k = 0; k < 6; k++) {
+      const ka = (k / 6) * Math.PI * 2;
+      const keyBar = new THREE.Mesh(
+        new THREE.BoxGeometry(0.06, 8.2, 0.08),
+        MATERIALS.champagneGold
+      );
+      keyBar.position.set(Math.cos(ka) * 0.39, 0, Math.sin(ka) * 0.39);
+      keyBar.rotation.y = -ka;
+      mainDriveShaftGroup.add(keyBar);
+    }
+
+    // Build 3 Stacked Epicyclic Planetary Decks (Lower Y=-1.1, Equatorial Y=0, Upper Y=+1.1)
+    const planetaryDecks = [];
+    const deckConfigs = [
+      { yBase: -1.15, sunMat: MATERIALS.champagneGold, ringMat: MATERIALS.cobaltAnodized, planetMat: MATERIALS.pearlCeramic, ringDir: 1 },
+      { yBase: 0.0, sunMat: MATERIALS.aerospaceOrange, ringMat: MATERIALS.machinedSlate, planetMat: MATERIALS.champagneGold, ringDir: -1 },
+      { yBase: 1.15, sunMat: MATERIALS.champagneGold, ringMat: MATERIALS.iridescentTeal, planetMat: MATERIALS.pearlCeramic, ringDir: 1 }
+    ];
+
+    deckConfigs.forEach((cfg, deckIdx) => {
+      const deckGroup = new THREE.Group();
+      deckGroup.position.y = cfg.yBase;
+      machineRoot.add(deckGroup);
+
+      // Sun Gear (horizontally oriented in XZ plane: rotateX(-PI/2) so +Z rotation is +Y world rotation)
+      const sunHolder = new THREE.Group();
+      const sunMesh = new THREE.Mesh(sunGearGeo, cfg.sunMat);
+      sunMesh.rotation.x = -Math.PI * 0.5;
+      sunHolder.add(sunMesh);
+      deckGroup.add(sunHolder);
+
+      // Internal Toothed Ring Gear
+      const ringHolder = new THREE.Group();
+      const ringMesh = new THREE.Mesh(internalRingGeo, cfg.ringMat);
+      ringMesh.rotation.x = -Math.PI * 0.5;
+      ringHolder.add(ringMesh);
+
+      // External 48-Tooth Spur Gear on the outside of the middle ring gear (Module = 0.14, Pitch Radius = 3.36)
+      // This drives 12 Mid-Sector 12-Tooth Transfer Pinions (R = 0.84) at Orbit R = 4.20, which in turn drive
+      // the 72-Tooth Outer Internal Shroud Ring (R = 5.04)!
+      if (deckIdx === 1) {
+        const outerCrownGeo = createExactSpurGearGeometry(0.14, 48, 0.24, 3.16, false);
+        const outerCrownMesh = new THREE.Mesh(outerCrownGeo, MATERIALS.champagneGold);
+        outerCrownMesh.rotation.x = -Math.PI * 0.5;
+        ringHolder.add(outerCrownMesh);
+      }
+      deckGroup.add(ringHolder);
+
+      // Planet Carrier Truss Ring + 6 Meshing Planet Gears
+      const carrierGroup = new THREE.Group();
+      deckGroup.add(carrierGroup);
+
+      const carrierBridgeGeo = new THREE.TorusGeometry(R_PLANET_ORBIT, 0.055, 8, 48);
+      carrierBridgeGeo.rotateX(Math.PI * 0.5);
+      const upperBridge = new THREE.Mesh(carrierBridgeGeo, MATERIALS.brushedSteel);
+      upperBridge.position.y = 0.2;
+      const lowerBridge = new THREE.Mesh(carrierBridgeGeo, MATERIALS.brushedSteel);
+      lowerBridge.position.y = -0.2;
+      carrierGroup.add(upperBridge, lowerBridge);
+
+      const planets = [];
+      for (let p = 0; p < PLANET_COUNT; p++) {
+        const beta = (p / PLANET_COUNT) * Math.PI * 2;
+        const planetAxleGroup = new THREE.Group();
+        planetAxleGroup.position.set(
+          Math.cos(beta) * R_PLANET_ORBIT,
+          0,
+          -Math.sin(beta) * R_PLANET_ORBIT
+        );
+        planetAxleGroup.rotation.y = beta;
+
+        // Axle pin connecting upper and lower carrier bridges
+        const axlePin = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.16, 0.16, 0.52, 16),
+          MATERIALS.crimsonServo
+        );
+        planetAxleGroup.add(axlePin);
+
+        const planetMesh = new THREE.Mesh(
+          planetGearGeo,
+          p % 2 === 0 ? cfg.planetMat : MATERIALS.brushedSteel
+        );
+        planetMesh.rotation.x = -Math.PI * 0.5;
+        planetAxleGroup.add(planetMesh);
+
+        carrierGroup.add(planetAxleGroup);
+        planets.push({ mesh: planetMesh, beta });
+      }
+
+      // Align Internal Ring Gear inward tooth peak at angle = 0 so it locks into Planet outer valley
+      ringMesh.rotation.z = Math.PI / RING_TEETH;
+
+      planetaryDecks.push({
+        deckGroup,
+        yBase: cfg.yBase,
+        ringDir: cfg.ringDir,
+        sunHolder,
+        ringHolder,
+        carrierGroup,
+        planets
+      });
+    });
+
+    // ============================================================================
+    // STAGE 2: 48-TOOTH BEVEL CROWN GEAR & 12 RADIAL 16-TOOTH PTO SHAFTS (3:1 RATIO)
+    // ============================================================================
+    const ptoCrownGroup = new THREE.Group();
+    ptoCrownGroup.position.y = 0.56;
+    machineRoot.add(ptoCrownGroup);
+
+    const crownBevelGeo = createExactSpurGearGeometry(GEAR_MODULE * 0.9, CROWN_BEVEL_TEETH, 0.18, 2.1, false);
+    const crownBevelMesh = new THREE.Mesh(crownBevelGeo, MATERIALS.berylliumCopper);
+    crownBevelMesh.rotation.x = -Math.PI * 0.5;
+    ptoCrownGroup.add(crownBevelMesh);
+
+    const R_CROWN_BEVEL = (GEAR_MODULE * 0.9 * CROWN_BEVEL_TEETH) * 0.5; // 2.16
+    const ptoPinionGeo = createExactSpurGearGeometry(GEAR_MODULE * 0.9, PTO_PINION_TEETH, 0.18, 0.14, false);
+
+    // ============================================================================
+    // STAGE 3, 4 & 5: 12 RADIAL SECTORS WITH:
+    //   - RACK-AND-PINION MORPH CARRIAGE (14T Pinion -> Linear Toothed Rack)
+    //   - RADIAL PTO SPLINE SHAFT + 16T:24T CRANK REDUCTION GEARS
+    //   - 4-BAR ECCENTRIC CRANK + CONNECTING ROD (EXACT CIRCLE INTERSECTION)
+    //   - 3-GEAR COMPOUND FOLDING WING TRAIN (20T Shoulder -> 14T Idler -> 16T Elbow)
+    //   - GEARED PINCER CALIPER CLAWS & TELESCOPING COILOVER DAMPER
+    // ============================================================================
+    const radialSectors = [];
+
+    const rackPinionGeo = createExactSpurGearGeometry(GEAR_MODULE, RACK_PINION_TEETH, 0.24, 0.16, false);
+    const linearRackGeo = createExactLinearRackGeometry(GEAR_MODULE, 12, 0.22, 0.24);
+
+    const crankDriveGearGeo = createExactSpurGearGeometry(GEAR_MODULE * 0.75, CRANK_DRIVE_TEETH, 0.18, 0.14, false);
+    const crankWheelGearGeo = createExactSpurGearGeometry(GEAR_MODULE * 0.75, CRANK_WHEEL_TEETH, 0.18, 0.18, true);
+    const R_CRANK_DRV_SCALED = (GEAR_MODULE * 0.75 * CRANK_DRIVE_TEETH) * 0.5; // 0.72
+    const R_CRANK_WHL_SCALED = (GEAR_MODULE * 0.75 * CRANK_WHEEL_TEETH) * 0.5; // 1.08
+    const CRANK_GEAR_CENTER_DIST = R_CRANK_DRV_SCALED + R_CRANK_WHL_SCALED;   // 1.80
+
+    // Compound Wing Gear Train Geometries (Module = 0.095 for compact wing knuckles)
+    const WING_MOD = 0.095;
+    const R_W_SHOULDER = (WING_MOD * SHOULDER_GEAR_TEETH) * 0.5; // 0.95
+    const R_W_IDLER = (WING_MOD * IDLER_GEAR_TEETH) * 0.5;       // 0.665
+    const R_W_ELBOW = (WING_MOD * ELBOW_GEAR_TEETH) * 0.5;       // 0.76
+    const UPPER_ARM_SPAN = R_W_SHOULDER + 2 * R_W_IDLER + R_W_ELBOW; // Exact center-to-center span = 3.04!
+
+    const shoulderGearGeo = createExactSpurGearGeometry(WING_MOD, SHOULDER_GEAR_TEETH, 0.22, 0.18, true);
+    const idlerGearGeo = createExactSpurGearGeometry(WING_MOD, IDLER_GEAR_TEETH, 0.22, 0.14, false);
+    const elbowGearGeo = createExactSpurGearGeometry(WING_MOD, ELBOW_GEAR_TEETH, 0.22, 0.16, true);
+    const clawPinionGeo = createExactSpurGearGeometry(WING_MOD * 0.85, WRIST_GEAR_TEETH, 0.16, 0.1, false);
+
+    // 4-Bar Crank-Rocker Geometry Constants (in local XY plane of carriage)
+    const CRANK_CENTER_X = 0.0;
+    const CRANK_CENTER_Y = -0.95;
+    const CRANK_PIN_RADIUS = 0.36;
+    const SHOULDER_PIVOT_X = 0.88;
+    const SHOULDER_PIVOT_Y = 0.15;
+    const ROCKER_LUG_RADIUS = 0.72;
+    const CON_ROD_LENGTH = 1.48;
+
+    // Pre-build a precision Connecting Rod mesh of exact length CON_ROD_LENGTH from (0,0) to (CON_ROD_LENGTH, 0)
+    function createConnectingRodGroup(length, mat) {
+      const grp = new THREE.Group();
+      const beamGeo = new THREE.BoxGeometry(length, 0.13, 0.12);
+      beamGeo.translate(length * 0.5, 0, 0);
+      const beam = new THREE.Mesh(beamGeo, mat);
+      grp.add(beam);
+
+      const eyeGeo = new THREE.CylinderGeometry(0.14, 0.14, 0.18, 16);
+      eyeGeo.rotateX(Math.PI * 0.5);
+      const eyeA = new THREE.Mesh(eyeGeo, MATERIALS.champagneGold);
+      const eyeB = new THREE.Mesh(eyeGeo, MATERIALS.champagneGold);
+      eyeB.position.x = length;
+      grp.add(eyeA, eyeB);
+      return grp;
+    }
+
+    const damperSpringGeo = createHelicalSpringGeometry(0.072, 6, 0.65, 0.015);
+    damperSpringGeo.rotateX(Math.PI * 0.5);
+
+    function createCoiloverDamperUnit(maxLen = 1.65, barrelMat = MATERIALS.crimsonServo) {
+      const root = new THREE.Group();
+      const housing = new THREE.Group();
+      const barrelGeo = new THREE.CylinderGeometry(0.068, 0.068, maxLen * 0.52, 14);
+      barrelGeo.rotateX(Math.PI * 0.5);
+      barrelGeo.translate(0, 0, maxLen * 0.26);
+      const barrel = new THREE.Mesh(barrelGeo, barrelMat);
+
+      const collarGeo = new THREE.CylinderGeometry(0.092, 0.092, 0.1, 14);
+      collarGeo.rotateX(Math.PI * 0.5);
+      collarGeo.translate(0, 0, maxLen * 0.52);
+      const collar = new THREE.Mesh(collarGeo, MATERIALS.champagneGold);
+
+      const spring = new THREE.Mesh(damperSpringGeo, MATERIALS.berylliumCopper);
+      spring.position.z = maxLen * 0.55;
+      housing.add(barrel, collar, spring);
+
+      const rodGroup = new THREE.Group();
+      const rodGeo = new THREE.CylinderGeometry(0.036, 0.036, maxLen * 0.72, 12);
+      rodGeo.rotateX(Math.PI * 0.5);
+      rodGeo.translate(0, 0, maxLen * 0.36);
+      const rod = new THREE.Mesh(rodGeo, MATERIALS.mirrorChrome);
+      rodGroup.add(rod);
+
+      root.add(housing, rodGroup);
+      return {
+        root,
+        update(ptA, ptB) {
+          housing.position.copy(ptA);
+          housing.lookAt(ptB);
+          rodGroup.position.copy(ptB);
+          rodGroup.lookAt(ptA);
+          const dist = ptA.distanceTo(ptB);
+          const span = Math.max(0.15, dist - maxLen * 0.48);
+          spring.position.z = maxLen * 0.5 + span * 0.45;
+          spring.scale.set(1, 1, span / 0.65);
+        }
+      };
+    }
+
+    // ============================================================================
+    // STAGE 2B: OUTER 48T -> 12x12T -> 72T EPICYCLIC SHROUD RING TRANSMISSION
+    // ============================================================================
+    const OUTER_MOD = 0.14;
+    const OUTER_SUN_TEETH = 48;    // Pitch R = 3.36 (mounted on Deck 1 Ring)
+    const OUTER_PINION_TEETH = 12; // Pitch R = 0.84 (Orbit R = 3.36 + 0.84 = 4.20)
+    const OUTER_SHROUD_TEETH = 72; // Pitch R = 5.04 (48 + 2*12 = 72)
+
+    const outerTransferPinions = [];
+    const outerPinionGeo = createExactSpurGearGeometry(OUTER_MOD, OUTER_PINION_TEETH, 0.24, 0.18, false);
+
+    for (let i = 0; i < RADIAL_SECTOR_COUNT; i++) {
+      // Positioned at the exact midpoint angle between radial sectors so axles never intersect rails
+      const midBeta = ((i + 0.5) / RADIAL_SECTOR_COUNT) * Math.PI * 2;
+      const pinionHolder = new THREE.Group();
+      pinionHolder.position.set(
+        Math.cos(midBeta) * 4.2,
+        0,
+        -Math.sin(midBeta) * 4.2
+      );
+      pinionHolder.rotation.y = midBeta;
+
+      const axlePost = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.16, 0.16, 0.65, 14),
+        MATERIALS.machinedSlate
+      );
+      pinionHolder.add(axlePost);
+
+      const pMesh = new THREE.Mesh(
+        outerPinionGeo,
+        i % 2 === 0 ? MATERIALS.pearlCeramic : MATERIALS.aerospaceOrange
+      );
+      pMesh.rotation.x = -Math.PI * 0.5;
+      pinionHolder.add(pMesh);
+
+      machineRoot.add(pinionHolder);
+      outerTransferPinions.push(pMesh);
+    }
+
+    // 72-Tooth Internal Toothed Outer Shroud Ring meshing with all 12 Transfer Pinions at R = 5.04
+    const outerShroudGroup = new THREE.Group();
+    machineRoot.add(outerShroudGroup);
+
+    const outerShroudRingGeo = createExactInternalRingGearGeometry(OUTER_MOD, OUTER_SHROUD_TEETH, 5.48, 0.26);
+    const outerShroudRingMesh = new THREE.Mesh(outerShroudRingGeo, MATERIALS.iridescentTeal);
+    outerShroudRingMesh.rotation.x = -Math.PI * 0.5;
+    outerShroudRingMesh.rotation.z = Math.PI / OUTER_SHROUD_TEETH;
+    outerShroudGroup.add(outerShroudRingMesh);
+
+    // 24 Articulated Turbine Louvers mounted around the perimeter of the 72T Shroud Ring
+    const shroudLouvers = [];
+    for (let k = 0; k < 24; k++) {
+      const la = (k / 24) * Math.PI * 2;
+      const louverPivot = new THREE.Group();
+      louverPivot.position.set(Math.cos(la) * 5.48, 0, -Math.sin(la) * 5.48);
+      louverPivot.rotation.y = la;
+
+      const finMesh = new THREE.Mesh(
+        new THREE.BoxGeometry(0.14, 0.78, 0.36),
+        k % 2 === 0 ? MATERIALS.champagneGold : MATERIALS.cobaltAnodized
+      );
+      louverPivot.add(finMesh);
+      outerShroudGroup.add(louverPivot);
+      shroudLouvers.push({ pivot: louverPivot, phase: la });
+    }
+
+    const sectorPalette = [
+      MATERIALS.pearlCeramic,
+      MATERIALS.aerospaceOrange,
+      MATERIALS.cobaltAnodized,
+      MATERIALS.iridescentTeal
+    ];
+
+    for (let i = 0; i < RADIAL_SECTOR_COUNT; i++) {
+      const azimuth = (i / RADIAL_SECTOR_COUNT) * Math.PI * 2;
+      const sectorGroup = new THREE.Group();
+      sectorGroup.rotation.y = azimuth;
+      machineRoot.add(sectorGroup);
+
+      // 1) Fixed Guide Rail Frame anchored to central chassis
+      const guideRailMesh = new THREE.Mesh(
+        new THREE.BoxGeometry(3.4, 0.14, 0.44),
+        MATERIALS.machinedSlate
+      );
+      guideRailMesh.position.set(4.6, -0.32, 0);
+      sectorGroup.add(guideRailMesh);
+
+      // 2) Radial PTO Shaft & 16T Bevel Pinion meshing with 48T Central Bevel Crown
+      const ptoShaftGroup = new THREE.Group();
+      ptoShaftGroup.position.set(R_CROWN_BEVEL, 0.38, 0);
+      sectorGroup.add(ptoShaftGroup);
+
+      const ptoPinionMesh = new THREE.Mesh(ptoPinionGeo, MATERIALS.champagneGold);
+      ptoPinionMesh.rotation.y = Math.PI * 0.5;
+      ptoShaftGroup.add(ptoPinionMesh);
+
+      const radialShaftMesh = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.085, 0.085, 2.8, 12),
+        MATERIALS.mirrorChrome
+      );
+      radialShaftMesh.rotation.z = Math.PI * 0.5;
+      radialShaftMesh.position.x = 1.4;
+      ptoShaftGroup.add(radialShaftMesh);
+
+      // Pillow-block bearing housing supporting the radial PTO shaft
+      const pillowBearing = new THREE.Mesh(
+        new THREE.BoxGeometry(0.24, 0.52, 0.38),
+        MATERIALS.cobaltAnodized
+      );
+      pillowBearing.position.set(3.25, 0.14, 0);
+      sectorGroup.add(pillowBearing);
+
+      // 3) Stationary 14-Tooth Rack Pinion mounted at X = 3.85, Y = 0.62
+      //    Its bottom teeth (at Y = 0.62 - R_RACK_PINION = -0.22) mesh directly with the Linear Rack!
+      const RACK_PINION_X = 3.85;
+      const RACK_PITCH_Y = -0.06;
+      const RACK_PINION_Y = RACK_PITCH_Y + R_RACK_PINION; // 0.78
+
+      const rackPinionPivot = new THREE.Group();
+      rackPinionPivot.position.set(RACK_PINION_X, RACK_PINION_Y, 0);
+      sectorGroup.add(rackPinionPivot);
+
+      const rackPinionMesh = new THREE.Mesh(
+        rackPinionGeo,
+        i % 2 === 0 ? MATERIALS.aerospaceOrange : MATERIALS.crimsonServo
+      );
+      rackPinionPivot.add(rackPinionMesh);
+
+      // Support stanchion for the Rack Pinion axle
+      const stanchion = new THREE.Mesh(
+        new THREE.BoxGeometry(0.28, 1.15, 0.16),
+        MATERIALS.brushedSteel
+      );
+      stanchion.position.set(RACK_PINION_X, 0.25, -0.22);
+      sectorGroup.add(stanchion);
+
+      // 4) Sliding Radial Carriage driven by the Linear Toothed Gear Rack
+      const carriageGroup = new THREE.Group();
+      sectorGroup.add(carriageGroup);
+
+      // Linear Toothed Rack bolted to the top of the sliding carriage
+      // Pitch line of rack is at local Y = RACK_PITCH_Y (-0.06) so it locks into rackPinionMesh!
+      const rackMesh = new THREE.Mesh(linearRackGeo, MATERIALS.champagneGold);
+      rackMesh.position.set(0, RACK_PITCH_Y, 0);
+      carriageGroup.add(rackMesh);
+
+      // Carriage Manifold Body below the rack
+      const carriageBlock = new THREE.Mesh(
+        new THREE.BoxGeometry(1.45, 0.65, 0.58),
+        i % 2 === 0 ? MATERIALS.pearlCeramic : MATERIALS.cobaltAnodized
+      );
+      carriageBlock.position.set(0.35, -0.55, 0);
+      carriageGroup.add(carriageBlock);
+
+      // 5) Eccentric Crank Wheel (24T) meshing with Radial Drive Gear (16T) on the Carriage
+      const crankDrivePivot = new THREE.Group();
+      crankDrivePivot.position.set(CRANK_CENTER_X, CRANK_CENTER_Y + CRANK_GEAR_CENTER_DIST, 0.34);
+      carriageGroup.add(crankDrivePivot);
+      const crankDriveMesh = new THREE.Mesh(crankDriveGearGeo, MATERIALS.berylliumCopper);
+      crankDrivePivot.add(crankDriveMesh);
+
+      const crankWheelPivot = new THREE.Group();
+      crankWheelPivot.position.set(CRANK_CENTER_X, CRANK_CENTER_Y, 0.34);
+      carriageGroup.add(crankWheelPivot);
+
+      const crankWheelMesh = new THREE.Mesh(
+        crankWheelGearGeo,
+        i % 2 === 0 ? MATERIALS.iridescentTeal : MATERIALS.aerospaceOrange
+      );
+      crankWheelPivot.add(crankWheelMesh);
+
+      // Offset Crankpin on the 24T Crank Wheel at radius CRANK_PIN_RADIUS
+      const crankPinMesh = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.08, 0.08, 0.28, 14),
+        MATERIALS.mirrorChrome
+      );
+      crankPinMesh.rotation.x = Math.PI * 0.5;
+      crankPinMesh.position.set(CRANK_PIN_RADIUS, 0, 0.12);
+      crankWheelPivot.add(crankPinMesh);
+
+      // 6) Connecting Rod (Con-Rod) linking Crankpin to Upper Wing Rocker Lug
+      const conRodGroup = createConnectingRodGroup(CON_ROD_LENGTH, MATERIALS.brushedSteel);
+      conRodGroup.position.z = 0.44;
+      carriageGroup.add(conRodGroup);
+
+      // 7) Geared 3-Stage Folding Wing Assembly (20T Shoulder Sun -> 14T Idler -> 16T Elbow)
+      // 20T Shoulder Sun Gear mounted at the Shoulder Pivot (driven by morph differential)
+      const fixedShoulderSun = new THREE.Mesh(shoulderGearGeo, MATERIALS.champagneGold);
+      fixedShoulderSun.position.set(SHOULDER_PIVOT_X, SHOULDER_PIVOT_Y, -0.32);
+      carriageGroup.add(fixedShoulderSun);
+
+      // Upper Wing Arm pivoting around (SHOULDER_PIVOT_X, SHOULDER_PIVOT_Y)
+      const upperArmPivot = new THREE.Group();
+      upperArmPivot.position.set(SHOULDER_PIVOT_X, SHOULDER_PIVOT_Y, 0);
+      carriageGroup.add(upperArmPivot);
+
+      // Structural Upper Arm Twin Truss & Polychrome Aerodynamic Fairing
+      const upperTruss = new THREE.Mesh(
+        new THREE.BoxGeometry(UPPER_ARM_SPAN, 0.26, 0.32),
+        sectorPalette[i % sectorPalette.length]
+      );
+      upperTruss.position.set(UPPER_ARM_SPAN * 0.5, 0, 0);
+      upperArmPivot.add(upperTruss);
+
+      // Rocker Drive Lug on Upper Arm at exact distance ROCKER_LUG_RADIUS (0.72) from Shoulder Pivot
+      const rockerLugPin = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.09, 0.09, 0.55, 14),
+        MATERIALS.crimsonServo
+      );
+      rockerLugPin.rotation.x = Math.PI * 0.5;
+      rockerLugPin.position.set(ROCKER_LUG_RADIUS, 0, 0.22);
+      upperArmPivot.add(rockerLugPin);
+
+      // 14-Tooth Idler Transfer Gear mounted on the Upper Arm at X = R_W_SHOULDER + R_W_IDLER
+      const idlerPivot = new THREE.Group();
+      idlerPivot.position.set(R_W_SHOULDER + R_W_IDLER, 0, -0.32);
+      upperArmPivot.add(idlerPivot);
+      const idlerGearMesh = new THREE.Mesh(idlerGearGeo, MATERIALS.crimsonServo);
+      idlerPivot.add(idlerGearMesh);
+
+      // 16-Tooth Elbow Gear & Forearm Assembly mounted at X = UPPER_ARM_SPAN
+      const elbowPivot = new THREE.Group();
+      elbowPivot.position.set(UPPER_ARM_SPAN, 0, 0);
+      upperArmPivot.add(elbowPivot);
+
+      const elbowGearMesh = new THREE.Mesh(elbowGearGeo, MATERIALS.cobaltAnodized);
+      elbowGearMesh.position.z = -0.32;
+      elbowPivot.add(elbowGearMesh);
+
+      // Forearm Sculpted Blade & Twin Meshing Geared Pincer Claws
+      const FOREARM_LEN = 1.85;
+      const forearmBeam = new THREE.Mesh(
+        new THREE.BoxGeometry(FOREARM_LEN, 0.22, 0.26),
+        sectorPalette[(i + 1) % sectorPalette.length]
+      );
+      forearmBeam.position.set(FOREARM_LEN * 0.5, 0, 0);
+      elbowPivot.add(forearmBeam);
+
+      // Swept Anodized Wing Shield Plate
+      const wingShield = new THREE.Mesh(
+        new THREE.BoxGeometry(1.55, 0.52, 0.08),
+        sectorPalette[(i + 2) % sectorPalette.length]
+      );
+      wingShield.position.set(1.0, 0.22, 0.18);
+      wingShield.rotation.z = -0.14;
+      elbowPivot.add(wingShield);
+
+      // Twin Counter-Rotating 12T Pincer Gears at the Wrist Tip (meshing directly with each other!)
+      const R_CLAW = (WING_MOD * 0.85 * WRIST_GEAR_TEETH) * 0.5; // 0.4845
+      const upperClawPivot = new THREE.Group();
+      upperClawPivot.position.set(FOREARM_LEN, R_CLAW, 0);
+      const lowerClawPivot = new THREE.Group();
+      lowerClawPivot.position.set(FOREARM_LEN, -R_CLAW, 0);
+      elbowPivot.add(upperClawPivot, lowerClawPivot);
+
+      const upperClawGear = new THREE.Mesh(clawPinionGeo, MATERIALS.champagneGold);
+      const lowerClawGear = new THREE.Mesh(clawPinionGeo, MATERIALS.aerospaceOrange);
+      // Offset lower gear by PI / WRIST_GEAR_TEETH so their teeth interleave at (FOREARM_LEN, 0)!
+      lowerClawGear.rotation.z = Math.PI / WRIST_GEAR_TEETH;
+      upperClawPivot.add(upperClawGear);
+      lowerClawPivot.add(lowerClawGear);
+
+      const clawFingerGeo = new THREE.BoxGeometry(0.95, 0.14, 0.12);
+      clawFingerGeo.translate(0.48, 0, 0);
+      const upperFinger = new THREE.Mesh(clawFingerGeo, MATERIALS.pearlCeramic);
+      const lowerFinger = new THREE.Mesh(clawFingerGeo, MATERIALS.pearlCeramic);
+      upperClawPivot.add(upperFinger);
+      lowerClawPivot.add(lowerFinger);
+
+      // 8) Telescoping Coilover Hydraulic Damper connecting Upper Arm to Forearm
+      const damperAnchorA = new THREE.Object3D();
+      damperAnchorA.position.set(1.15, 0.24, 0.18);
+      upperArmPivot.add(damperAnchorA);
+
+      const damperAnchorB = new THREE.Object3D();
+      damperAnchorB.position.set(0.85, 0.18, 0.18);
+      elbowPivot.add(damperAnchorB);
+
+      const forearmDamper = createCoiloverDamperUnit(
+        1.55,
+        i % 2 === 0 ? MATERIALS.aerospaceOrange : MATERIALS.cobaltAnodized
+      );
+      carriageGroup.add(forearmDamper.root);
+
+      radialSectors.push({
+        index: i,
+        azimuth,
+        sectorGroup,
+        ptoPinionMesh,
+        radialShaftMesh,
+        rackPinionPivot,
+        RACK_PINION_X,
+        carriageGroup,
+        crankDrivePivot,
+        crankWheelPivot,
+        conRodGroup,
+        fixedShoulderSun,
+        upperArmPivot,
+        idlerPivot,
+        elbowPivot,
+        upperClawPivot,
+        lowerClawPivot,
+        damperAnchorA,
+        damperAnchorB,
+        forearmDamper
+      });
+    }
+
+    // ============================================================================
+    // STAGE 6: UPPER & LOWER 3-LOBE SINUSOIDAL WAVE CAM DRUMS, 12 ROLLER TAPPETS,
+    //          HELICAL VALVE SPRINGS & LINKED 12-PETAL CROWN IRIS CANOPIES
+    // ============================================================================
+    const camTowers = [];
+    const CAM_RADIUS = 1.85;
+    const CAM_AMPLITUDE = 0.28;
+    const tappetSpringGeo = createHelicalSpringGeometry(0.14, 6, 0.85, 0.022);
+
+    // Build a 3D Sinusoidal Wave-Groove Cam Ring so roller followers visibly ride on the wave crest
+    function createWaveCamRingGeometry(radius, amplitude, lobes, segments = 120) {
+      const pts = [];
+      for (let i = 0; i <= segments; i++) {
+        const a = (i / segments) * Math.PI * 2;
+        const y = Math.sin(a * lobes) * amplitude;
+        pts.push(new THREE.Vector3(Math.cos(a) * radius, y, -Math.sin(a) * radius));
+      }
+      return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, true), segments, 0.09, 14, true);
+    }
+
+    const waveCamTrackGeo = createWaveCamRingGeometry(CAM_RADIUS, CAM_AMPLITUDE, CAM_LOBES);
+
+    for (let side of [-1, 1]) {
+      const towerGroup = new THREE.Group();
+      towerGroup.position.y = side * 2.55;
+      machineRoot.add(towerGroup);
+
+      // Rotating Cam Drum driven by the central shaft
+      const camDrumGroup = new THREE.Group();
+      towerGroup.add(camDrumGroup);
+
+      const drumHub = new THREE.Mesh(
+        new THREE.CylinderGeometry(CAM_RADIUS - 0.12, CAM_RADIUS - 0.12, 0.72, 36),
+        side > 0 ? MATERIALS.cobaltAnodized : MATERIALS.iridescentTeal
+      );
+      camDrumGroup.add(drumHub);
+
+      // Sinusoidal 3-Lobe Cam Track Ridge
+      const waveTrackMesh = new THREE.Mesh(waveCamTrackGeo, MATERIALS.champagneGold);
+      camDrumGroup.add(waveTrackMesh);
+
+      // Stationary Tappet Guide Crown & 12 Roller-Follower Pistons + Helical Return Springs
+      const tappets = [];
+      const petals = [];
+
+      for (let k = 0; k < IRIS_PETAL_COUNT; k++) {
+        const phi = (k / IRIS_PETAL_COUNT) * Math.PI * 2;
+        const x = Math.cos(phi) * CAM_RADIUS;
+        const z = -Math.sin(phi) * CAM_RADIUS;
+
+        // Stationary Valve Guide Barrel
+        const guideSleeve = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.17, 0.17, 0.55, 14),
+          MATERIALS.machinedSlate
+        );
+        guideSleeve.position.set(x, side * 0.78, z);
+        towerGroup.add(guideSleeve);
+
+        // Helical Compression Spring around each tappet stem
+        const springMesh = new THREE.Mesh(tappetSpringGeo, MATERIALS.berylliumCopper);
+        springMesh.position.set(x, side * 0.78, z);
+        towerGroup.add(springMesh);
+
+        // Reciprocating Tappet Stem + Spinning Cam Roller Wheel
+        const tappetUnit = new THREE.Group();
+        tappetUnit.position.set(x, 0, z);
+        tappetUnit.rotation.y = phi;
+        towerGroup.add(tappetUnit);
+
+        const rollerWheel = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.12, 0.12, 0.1, 16),
+          MATERIALS.mirrorChrome
+        );
+        rollerWheel.rotation.z = Math.PI * 0.5;
+        tappetUnit.add(rollerWheel);
+
+        const stemRod = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.065, 0.065, 1.25, 12),
+          MATERIALS.mirrorChrome
+        );
+        stemRod.position.y = side * 0.62;
+        tappetUnit.add(stemRod);
+
+        const clevisCap = new THREE.Mesh(
+          new THREE.BoxGeometry(0.22, 0.22, 0.22),
+          k % 2 === 0 ? MATERIALS.aerospaceOrange : MATERIALS.crimsonServo
+        );
+        clevisCap.position.y = side * 1.25;
+        tappetUnit.add(clevisCap);
+
+        // Articulated Crown Iris Petal driven directly by the tappet's vertical stroke!
+        const petalPivot = new THREE.Group();
+        petalPivot.position.set(Math.cos(phi) * 1.25, side * 1.42, -Math.sin(phi) * 1.25);
+        petalPivot.rotation.y = phi;
+        towerGroup.add(petalPivot);
+
+        const petalBlade = new THREE.Mesh(
+          new THREE.BoxGeometry(1.65, 0.1, 0.42),
+          sectorPalette[k % sectorPalette.length]
+        );
+        petalBlade.position.set(0.75, 0, 0);
+        petalPivot.add(petalBlade);
+
+        const petalRib = new THREE.Mesh(
+          new THREE.BoxGeometry(1.4, 0.16, 0.1),
+          MATERIALS.champagneGold
+        );
+        petalRib.position.set(0.68, side * 0.06, 0);
+        petalPivot.add(petalRib);
+
+        tappets.push({ tappetUnit, rollerWheel, springMesh, phi });
+        petals.push({ petalPivot, phi });
+      }
+
+      camTowers.push({
+        side,
+        yBase: side * 2.55,
+        towerGroup,
+        camDrumGroup,
+        tappets,
+        petals
+      });
+    }
+
+    // ============================================================================
+    // STAGE 7: HOROLOGICAL BALANCE WHEEL & HAIRSPRING OSCILLATOR (CROWN APEX)
+    // ============================================================================
+    const balanceAssembly = new THREE.Group();
+    balanceAssembly.position.y = 4.45;
+    machineRoot.add(balanceAssembly);
+
+    const balanceWheelGroup = new THREE.Group();
+    balanceAssembly.add(balanceWheelGroup);
+
+    const balanceRim = new THREE.Mesh(
+      new THREE.TorusGeometry(1.35, 0.08, 14, 64),
+      MATERIALS.champagneGold
+    );
+    balanceRim.rotation.x = Math.PI * 0.5;
+    balanceWheelGroup.add(balanceRim);
+
+    // 16 Gold Timing Screws around the Balance Wheel rim
+    for (let s = 0; s < 16; s++) {
+      const sa = (s / 16) * Math.PI * 2;
+      const timingWeight = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.055, 0.055, 0.22, 10),
+        MATERIALS.crimsonServo
+      );
+      timingWeight.rotation.z = Math.PI * 0.5;
+      timingWeight.rotation.y = -sa;
+      timingWeight.position.set(Math.cos(sa) * 1.44, 0, Math.sin(sa) * 1.44);
+      balanceWheelGroup.add(timingWeight);
+    }
+
+    for (let sp = 0; sp < 3; sp++) {
+      const spa = (sp / 3) * Math.PI * 2;
+      const spoke = new THREE.Mesh(
+        new THREE.BoxGeometry(2.65, 0.06, 0.12),
+        MATERIALS.brushedSteel
+      );
+      spoke.rotation.y = spa;
+      balanceWheelGroup.add(spoke);
+    }
+
+    // Spiral Hairspring inside the Balance Wheel
+    const hairspringPts = [];
+    for (let i = 0; i <= 140; i++) {
+      const t = i / 140;
+      const a = t * 4.5 * Math.PI * 2;
+      const r = 0.25 + t * 0.75;
+      hairspringPts.push(new THREE.Vector3(Math.cos(a) * r, 0.14, Math.sin(a) * r));
+    }
+    const hairspringMesh = new THREE.Mesh(
+      new THREE.TubeGeometry(new THREE.CatmullRomCurve3(hairspringPts), 140, 0.018, 8, false),
+      MATERIALS.aerospaceOrange
+    );
+    balanceAssembly.add(hairspringMesh);
+
+    // ============================================================================
+    // STAGE 8: CALIBRATION PEDESTAL & UNIVERSAL SELF-SHADOWING
+    // ============================================================================
+    const pedestalGroup = new THREE.Group();
+    pedestalGroup.position.y = -5.65;
+    scene.add(pedestalGroup);
+
+    const basePlate = new THREE.Mesh(
+      new THREE.CylinderGeometry(10.8, 11.4, 0.34, 64),
+      new THREE.MeshStandardMaterial({
+        color: 0xe2e8f0,
+        map: cncTexture,
+        metalness: 0.14,
+        roughness: 0.55
+      })
+    );
+    pedestalGroup.add(basePlate);
+
+    const pedestalRingGear = new THREE.Mesh(
+      createExactSpurGearGeometry(0.18, 96, 0.22, 7.9, false),
+      MATERIALS.machinedSlate
+    );
+    pedestalRingGear.rotation.x = -Math.PI * 0.5;
+    pedestalRingGear.position.y = 0.2;
+    pedestalGroup.add(pedestalRingGear);
+
+    // Enable universal castShadow & receiveShadow on every single mesh
+    machineRoot.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+    });
+    pedestalGroup.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+    });
+
+    // ============================================================================
+    // 4K MULTI-DIRECTIONAL SHADOW-CASTING + GLOBAL ILLUMINATION RIG
+    // ============================================================================
+    const keySunLight = new THREE.DirectionalLight(0xfffbeb, 5.5);
+    keySunLight.position.set(13, 19, 14);
+    keySunLight.castShadow = true;
+    keySunLight.shadow.mapSize.width = 4096;
+    keySunLight.shadow.mapSize.height = 4096;
+    keySunLight.shadow.camera.near = 2;
+    keySunLight.shadow.camera.far = 45;
+    const d = 10.2;
+    keySunLight.shadow.camera.left = -d;
+    keySunLight.shadow.camera.right = d;
+    keySunLight.shadow.camera.top = d;
+    keySunLight.shadow.camera.bottom = -d;
+    keySunLight.shadow.bias = -0.00018;
+    keySunLight.shadow.normalBias = 0.022;
+    scene.add(keySunLight);
+
+    const zenithSpotLight = new THREE.SpotLight(0xffffff, 170);
+    zenithSpotLight.position.set(-2, 22, 3);
+    zenithSpotLight.angle = Math.PI / 3.1;
+    zenithSpotLight.penumbra = 0.65;
+    zenithSpotLight.decay = 1.65;
+    zenithSpotLight.distance = 56;
+    zenithSpotLight.castShadow = true;
+    zenithSpotLight.shadow.mapSize.width = 2048;
+    zenithSpotLight.shadow.mapSize.height = 2048;
+    zenithSpotLight.shadow.camera.near = 4;
+    zenithSpotLight.shadow.camera.far = 42;
+    zenithSpotLight.shadow.bias = -0.00015;
+    zenithSpotLight.shadow.normalBias = 0.02;
+    scene.add(zenithSpotLight);
+
+    const coolCrossLight = new THREE.DirectionalLight(0x93c5fd, 1.85);
+    coolCrossLight.position.set(-14, 10, -12);
+    coolCrossLight.castShadow = true;
+    coolCrossLight.shadow.mapSize.width = 2048;
+    coolCrossLight.shadow.mapSize.height = 2048;
+    coolCrossLight.shadow.camera.near = 2;
+    coolCrossLight.shadow.camera.far = 45;
+    coolCrossLight.shadow.camera.left = -d;
+    coolCrossLight.shadow.camera.right = d;
+    coolCrossLight.shadow.camera.top = d;
+    coolCrossLight.shadow.camera.bottom = -d;
+    coolCrossLight.shadow.bias = -0.0002;
+    coolCrossLight.shadow.normalBias = 0.022;
+    scene.add(coolCrossLight);
+
+    const hemiLight = new THREE.HemisphereLight(0xe0f2fe, 0xfde68a, 0.45);
+    hemiLight.position.set(0, 25, 0);
+    scene.add(hemiLight);
+
+    const floorBounceLight = new THREE.DirectionalLight(0xfed7aa, 0.5);
+    floorBounceLight.position.set(0, -18, 6);
+    scene.add(floorBounceLight);
+
+    function applyShadowAndLightingBalance() {
+      const fillFactor = 1.0 - SHADOW_CONTRAST_LEVEL * 0.78;
+      hemiLight.intensity = 1.35 * fillFactor;
+      floorBounceLight.intensity = 1.2 * fillFactor;
+      scene.environmentIntensity = (0.26 + 0.54 * fillFactor) * (GI_EXPOSURE_LEVEL / 1.25);
+      keySunLight.intensity = 4.2 + SHADOW_CONTRAST_LEVEL * 1.8;
+      zenithSpotLight.intensity = 115 + SHADOW_CONTRAST_LEVEL * 75;
+    }
+    applyShadowAndLightingBalance();
+
+    // ============================================================================
+    // UI CONTROLS & CAMERA PRESETS
+    // ============================================================================
+    const hudRackEl = document.getElementById('hud-rack');
+    const hudRpmEl = document.getElementById('hud-rpm');
+    const cycleIndicatorEl = document.getElementById('cycle-indicator');
+
+    const sliderSpeed = document.getElementById('slider-speed');
+    const valSpeed = document.getElementById('val-speed');
+    const sliderMorph = document.getElementById('slider-morph');
+    const valMorph = document.getElementById('val-morph');
+    const sliderShaft = document.getElementById('slider-shaft');
+    const valShaft = document.getElementById('val-shaft');
+    const sliderExplode = document.getElementById('slider-explode');
+    const valExplode = document.getElementById('val-explode');
+    const sliderShadow = document.getElementById('slider-shadow');
+    const valShadow = document.getElementById('val-shadow');
+    const sliderExposure = document.getElementById('slider-exposure');
+    const valExposure = document.getElementById('val-exposure');
+    const btnAutoMorph = document.getElementById('btn-automorph');
+    const btnOrbit = document.getElementById('btn-orbit');
+    const btnBrightBg = document.getElementById('btn-brightbg');
+    const btnWireframe = document.getElementById('btn-wireframe');
+
+    const modeBtns = document.querySelectorAll('.mode-btn');
+    modeBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        ACTIVE_DRIVE_MODE = parseInt(btn.dataset.mode, 10);
+        modeBtns.forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        cycleIndicatorEl.textContent = ACTIVE_DRIVE_MODE === 3 ? 'MANUAL SCRUB' : 'SYNCHRONIZED';
+      });
+    });
+
+    sliderSpeed.addEventListener('input', (e) => {
+      DRIVE_SPEED_MULTIPLIER = parseFloat(e.target.value);
+      valSpeed.textContent = `${DRIVE_SPEED_MULTIPLIER.toFixed(2)}x`;
+    });
+
+    sliderMorph.addEventListener('input', (e) => {
+      MANUAL_MORPH_EXTENSION = parseFloat(e.target.value);
+      valMorph.textContent = MANUAL_MORPH_EXTENSION.toFixed(2);
+      if (AUTO_MORPH_ENABLED) {
+        AUTO_MORPH_ENABLED = false;
+        btnAutoMorph.classList.remove('active');
+      }
+    });
+
+    sliderShaft.addEventListener('input', (e) => {
+      MANUAL_DRIVE_SHAFT_ANGLE = parseFloat(e.target.value);
+      valShaft.textContent = MANUAL_DRIVE_SHAFT_ANGLE.toFixed(2);
+      if (ACTIVE_DRIVE_MODE !== 3) {
+        ACTIVE_DRIVE_MODE = 3;
+        modeBtns.forEach((b, idx) => b.classList.toggle('active', idx === 3));
+        cycleIndicatorEl.textContent = 'MANUAL SCRUB';
+      }
+    });
+
+    sliderExplode.addEventListener('input', (e) => {
+      AXIAL_EXPLODE_FACTOR = parseFloat(e.target.value);
+      valExplode.textContent = `${Math.round(AXIAL_EXPLODE_FACTOR * 100)}%`;
+    });
+
+    sliderShadow.addEventListener('input', (e) => {
+      SHADOW_CONTRAST_LEVEL = parseFloat(e.target.value);
+      valShadow.textContent = `${Math.round(SHADOW_CONTRAST_LEVEL * 100)}%`;
+      applyShadowAndLightingBalance();
+    });
+
+    sliderExposure.addEventListener('input', (e) => {
+      GI_EXPOSURE_LEVEL = parseFloat(e.target.value);
+      renderer.toneMappingExposure = GI_EXPOSURE_LEVEL;
+      valExposure.textContent = GI_EXPOSURE_LEVEL.toFixed(2);
+      applyShadowAndLightingBalance();
+    });
+
+    btnAutoMorph.addEventListener('click', () => {
+      AUTO_MORPH_ENABLED = !AUTO_MORPH_ENABLED;
+      btnAutoMorph.classList.toggle('active', AUTO_MORPH_ENABLED);
+    });
+
+    btnOrbit.addEventListener('click', () => {
+      AUTO_ORBIT_ENABLED = !AUTO_ORBIT_ENABLED;
+      controls.autoRotate = AUTO_ORBIT_ENABLED;
+      btnOrbit.classList.toggle('active', AUTO_ORBIT_ENABLED);
+    });
+
+    btnBrightBg.addEventListener('click', () => {
+      DAYLIGHT_LAB_ENABLED = !DAYLIGHT_LAB_ENABLED;
+      document.body.classList.toggle('bright-lab', DAYLIGHT_LAB_ENABLED);
+      btnBrightBg.classList.toggle('active', DAYLIGHT_LAB_ENABLED);
+    });
+
+    btnWireframe.addEventListener('click', () => {
+      WIREFRAME_XRAY_ENABLED = !WIREFRAME_XRAY_ENABLED;
+      btnWireframe.classList.toggle('active', WIREFRAME_XRAY_ENABLED);
+      Object.values(MATERIALS).forEach((m) => {
+        m.wireframe = WIREFRAME_XRAY_ENABLED;
+      });
+    });
+
+    // Camera Inspection Presets
+    const CAM_PRESETS = {
+      overview: { pos: new THREE.Vector3(14.5, 9.2, 16.5), target: new THREE.Vector3(0, 0, 0) },
+      core: { pos: new THREE.Vector3(4.2, 3.8, 4.6), target: new THREE.Vector3(0, 0.2, 0) },
+      rack: { pos: new THREE.Vector3(5.6, 2.2, 6.2), target: new THREE.Vector3(5.4, -0.2, 0) },
+      cam: { pos: new THREE.Vector3(4.8, 5.2, 4.8), target: new THREE.Vector3(0, 3.2, 0) }
+    };
+
+    document.querySelectorAll('.cam-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const preset = CAM_PRESETS[btn.dataset.cam];
+        if (preset) {
+          cameraTransition = {
+            pos: preset.pos.clone(),
+            target: preset.target.clone(),
+            alpha: 0
+          };
+        }
+      });
+    });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // ============================================================================
+    // MASTER MATHEMATICAL KINEMATICS & GEAR-MESH SOLVER LOOP
+    // ============================================================================
+    const clock = new THREE.Clock();
+    let continuousTime = 0;
+    let thetaSunMaster = 0;
+    let smoothedExplode = 0;
+    const tmpWorldA = new THREE.Vector3();
+    const tmpWorldB = new THREE.Vector3();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const dt = Math.min(clock.getDelta(), 0.05);
+      continuousTime += dt * DRIVE_SPEED_MULTIPLIER;
+      smoothedExplode = THREE.MathUtils.lerp(smoothedExplode, AXIAL_EXPLODE_FACTOR, 0.08);
+
+      // Smooth camera preset transition if triggered
+      if (cameraTransition) {
+        cameraTransition.alpha += dt * 2.5;
+        const k = Math.min(1, cameraTransition.alpha);
+        camera.position.lerp(cameraTransition.pos, k * 0.14);
+        controls.target.lerp(cameraTransition.target, k * 0.14);
+        if (k >= 1) cameraTransition = null;
+      }
+
+      // 1. DETERMINE MASTER DRIVE SHAFT ANGLE (thetaSunMaster) & MORPH EXTENSION (morphFraction)
+      let morphFraction = MANUAL_MORPH_EXTENSION;
+      if (AUTO_MORPH_ENABLED && ACTIVE_DRIVE_MODE !== 3) {
+        morphFraction = 0.5 + 0.5 * Math.sin(continuousTime * 0.45);
+        sliderMorph.value = morphFraction;
+        valMorph.textContent = morphFraction.toFixed(2);
+      }
+
+      if (ACTIVE_DRIVE_MODE === 0) {
+        // Smooth continuous horological drive
+        thetaSunMaster += dt * DRIVE_SPEED_MULTIPLIER * 1.15;
+      } else if (ACTIVE_DRIVE_MODE === 1) {
+        // Authentic Swiss Escapement step-impulse (4 Hz mechanical beat)
+        const freq = 3.5;
+        const beatPhase = continuousTime * freq;
+        const stepIndex = Math.floor(beatPhase);
+        const frac = beatPhase - stepIndex;
+        // Sharp mechanical impulse curve followed by deadbeat lock
+        const impulse = Math.min(1, Math.pow(frac, 0.35));
+        thetaSunMaster = (stepIndex + impulse) * (Math.PI / 24);
+      } else if (ACTIVE_DRIVE_MODE === 2) {
+        // High-speed counter-differential overdrive
+        thetaSunMaster += dt * DRIVE_SPEED_MULTIPLIER * 1.85;
+      } else {
+        // Manual CAD Scrubber mode
+        thetaSunMaster = MANUAL_DRIVE_SHAFT_ANGLE;
+      }
+
+      if (ACTIVE_DRIVE_MODE !== 3) {
+        const wrappedAngle = ((thetaSunMaster % (Math.PI * 4)) + Math.PI * 4) % (Math.PI * 4);
+        sliderShaft.value = wrappedAngle;
+        valShaft.textContent = wrappedAngle.toFixed(2);
+      }
+
+      // Rotate Central Spline Drive Shaft & 48T Bevel Crown Gear
+      mainDriveShaftGroup.rotation.y = thetaSunMaster;
+      ptoCrownGroup.rotation.y = thetaSunMaster;
+      ptoCrownGroup.position.y = 0.56 + smoothedExplode * 0.4;
+
+      // 2. SOLVE EXACT EPICYCLIC PLANETARY EQUATIONS FOR ALL 3 STACKED DECKS
+      //    Fundamental Law: Ns * thetaS + Nr * thetaR = (Ns + Nr) * thetaCarrier
+      //    Planet Local Spin: thetaPlanetLocal = -(thetaS - thetaCarrier) * (Ns / Np) + pi/Np
+      const ringMorphAngle =
+        ACTIVE_DRIVE_MODE === 2
+          ? -thetaSunMaster * 0.55
+          : -thetaSunMaster * 0.25 + (morphFraction - 0.5) * 1.35;
+
+      planetaryDecks.forEach((deck) => {
+        deck.deckGroup.position.y = deck.yBase * (1 + smoothedExplode * 1.35);
+
+        const thetaS = thetaSunMaster;
+        const thetaR = ringMorphAngle * deck.ringDir;
+        const thetaCarrier = (SUN_TEETH * thetaS + RING_TEETH * thetaR) / (SUN_TEETH + RING_TEETH);
+
+        deck.sunHolder.rotation.y = thetaS;
+        deck.ringHolder.rotation.y = thetaR;
+        deck.carrierGroup.rotation.y = thetaCarrier;
+
+        // Relative to the rotating carrier, each planet rotates around its own axle by:
+        // Since planetAxleGroup.rotation.y = beta and SUN_TEETH (24) is an integer multiple of PLANET_COUNT (6),
+        // every planet sees the exact same Sun tooth phase at its inner contact point (local angle PI).
+        const deltaS = thetaS - thetaCarrier;
+        const localSpin = -deltaS * (SUN_TEETH / PLANET_TEETH) + Math.PI / PLANET_TEETH;
+
+        deck.planets.forEach((p) => {
+          p.mesh.rotation.z = localSpin;
+        });
+      });
+
+      // 2B. SOLVE OUTER 48T -> 12x12T -> 72T EPICYCLIC SHROUD RING TRANSMISSION
+      // Deck 1 (equatorial deck, ringDir = -1) has angle thetaDeck1Ring = -ringMorphAngle.
+      // Because 48 * 15deg = 720deg (exact multiple of 360deg), all 12 Transfer Pinions (12T) at 15deg + k*30deg
+      // mesh with the 48T external crown at exact ratio -48/12 = -4.0, and drive the 72T Outer Shroud Ring
+      // at exact ratio -(48 / 72) = -2/3!
+      const thetaDeck1Ring = -ringMorphAngle;
+      const thetaOuterPinion =
+        -thetaDeck1Ring * (OUTER_SUN_TEETH / OUTER_PINION_TEETH) + Math.PI / OUTER_PINION_TEETH;
+      outerTransferPinions.forEach((pMesh) => {
+        pMesh.rotation.z = thetaOuterPinion;
+      });
+      outerShroudGroup.rotation.y = -thetaDeck1Ring * (OUTER_SUN_TEETH / OUTER_SHROUD_TEETH);
+      shroudLouvers.forEach((lv) => {
+        lv.pivot.rotation.z = 0.55 * Math.sin(thetaSunMaster * 2.0 + lv.phase * 3.0) + (morphFraction - 0.5) * 0.6;
+      });
+
+      // 3. SOLVE 12 RADIAL SECTORS:
+      //    - 48T Crown Bevel -> 16T Radial PTO Pinion (exact 3:1 ratio)
+      //    - 14T Rack Pinion -> Linear Toothed Rack translation (dx = R_RACK_PINION * thetaRackPinion)
+      //    - 16T:24T Crank Gears -> Exact 4-Bar Circle-Circle Intersection -> Geared Folding Wing
+      const thetaPTO = -thetaSunMaster * (CROWN_BEVEL_TEETH / PTO_PINION_TEETH); // Exact -3.0x speed
+
+      // Rack Pinion rotation drives the Linear Rack inward/outward with 100% pitch accuracy
+      const thetaRackPinion = (morphFraction - 0.5) * 1.65;
+      const rackLinearShift = R_RACK_PINION * thetaRackPinion; // Exact pitch displacement dx = R * dTheta!
+      const carriageX = 3.85 + rackLinearShift + smoothedExplode * 1.6;
+
+      radialSectors.forEach((sec) => {
+        const sectorPhase = (sec.index / RADIAL_SECTOR_COUNT) * Math.PI * 2;
+
+        // A) Radial PTO Bevel Pinion & Shaft spin at exact 3:1 ratio
+        sec.ptoPinionMesh.rotation.z = thetaPTO + Math.PI / PTO_PINION_TEETH;
+        sec.radialShaftMesh.rotation.x = thetaPTO;
+
+        // B) Rack Pinion & Linear Toothed Rack (exact tooth-to-valley lock!)
+        // At thetaRackPinion = 0, tooth pointing straight down (-PI/2) sits in Rack valley at X = 0:
+        sec.rackPinionPivot.rotation.z = -thetaRackPinion - Math.PI * 0.5;
+        sec.carriageGroup.position.x = carriageX;
+
+        // C) 16T Crank Drive Gear meshing with 24T Eccentric Crank Wheel (exact 2:3 ratio)
+        // Contact angle between top 16T gear and bottom 24T gear is -PI/2:
+        const thetaCrankDrive = thetaPTO * 0.5 + sectorPhase;
+        const thetaCrankWheel =
+          Math.PI * 0.5 +
+          Math.PI / CRANK_WHEEL_TEETH -
+          (CRANK_DRIVE_TEETH / CRANK_WHEEL_TEETH) * (thetaCrankDrive + Math.PI * 0.5);
+
+        sec.crankDrivePivot.rotation.z = thetaCrankDrive;
+        sec.crankWheelPivot.rotation.z = thetaCrankWheel;
+
+        // D) Exact 4-Bar Crank-Rocker Intersection Solver
+        // Crankpin position in carriage XY coordinates:
+        const pinX = CRANK_CENTER_X + Math.cos(thetaCrankWheel) * CRANK_PIN_RADIUS;
+        const pinY = CRANK_CENTER_Y + Math.sin(thetaCrankWheel) * CRANK_PIN_RADIUS;
+
+        // Solve exact intersection of Con-Rod circle (center=pin, R=CON_ROD_LENGTH)
+        // and Rocker Lug circle (center=SHOULDER_PIVOT, R=ROCKER_LUG_RADIUS):
+        const lugPos = solveTwoCircleIntersection(
+          pinX,
+          pinY,
+          CON_ROD_LENGTH,
+          SHOULDER_PIVOT_X,
+          SHOULDER_PIVOT_Y,
+          ROCKER_LUG_RADIUS,
+          true
+        );
+
+        // Place Connecting Rod at Crankpin and point it directly at the solved Rocker Lug!
+        sec.conRodGroup.position.set(pinX, pinY, 0.44);
+        sec.conRodGroup.rotation.z = Math.atan2(lugPos.y - pinY, lugPos.x - pinX);
+
+        // Upper Arm angle is the angle from Shoulder Pivot to the solved Rocker Lug!
+        const thetaUpperArm = Math.atan2(
+          lugPos.y - SHOULDER_PIVOT_Y,
+          lugPos.x - SHOULDER_PIVOT_X
+        );
+        sec.upperArmPivot.rotation.z = thetaUpperArm;
+
+        // E) 3-Gear Compound Wing Train (20T Shoulder Sun -> 14T Idler -> 16T Forearm Elbow)
+        // Morph extension rotates the 20T Shoulder Sun Gear, which drives the 14T Idler and 16T Elbow
+        // with 100% locked involute tooth phase at both contact points:
+        const thetaShoulderSun = -0.45 + 0.85 * morphFraction;
+        sec.fixedShoulderSun.rotation.z = thetaShoulderSun;
+
+        const thetaShoulderRel = thetaShoulderSun - thetaUpperArm;
+        const thetaIdlerLocal =
+          Math.PI +
+          Math.PI / IDLER_GEAR_TEETH -
+          (SHOULDER_GEAR_TEETH / IDLER_GEAR_TEETH) * thetaShoulderRel;
+        sec.idlerPivot.rotation.z = thetaIdlerLocal;
+
+        const thetaElbowLocal =
+          Math.PI +
+          Math.PI / ELBOW_GEAR_TEETH -
+          (IDLER_GEAR_TEETH / ELBOW_GEAR_TEETH) * thetaIdlerLocal;
+        sec.elbowPivot.rotation.z = thetaElbowLocal;
+
+        // F) Twin Meshing 12T Pincer Claw Gears at the Wrist Tip (1:1 counter-rotation)
+        const clawAngle = 0.12 + 0.28 * (0.5 + 0.5 * Math.sin(thetaCrankWheel));
+        sec.upperClawPivot.rotation.z = clawAngle;
+        sec.lowerClawPivot.rotation.z = -clawAngle;
+
+        // G) Solve Telescoping Coilover Hydraulic Damper between Upper Arm & Forearm
+        sec.carriageGroup.updateWorldMatrix(true, true);
+        sec.damperAnchorA.getWorldPosition(tmpWorldA);
+        sec.damperAnchorB.getWorldPosition(tmpWorldB);
+        sec.carriageGroup.worldToLocal(tmpWorldA);
+        sec.carriageGroup.worldToLocal(tmpWorldB);
+        sec.forearmDamper.update(tmpWorldA, tmpWorldB);
+      });
+
+      // 4. SOLVE UPPER & LOWER 3-LOBE WAVE CAM DRUMS, 12 ROLLER TAPPETS & CROWN IRIS PETALS
+      camTowers.forEach((tower) => {
+        const dir = tower.side;
+        tower.towerGroup.position.y = tower.yBase + dir * smoothedExplode * 1.9;
+
+        const camRot = thetaSunMaster * 0.75 * dir;
+        tower.camDrumGroup.rotation.y = camRot;
+
+        tower.tappets.forEach((t, idx) => {
+          // Exact height of the 3-lobe sinusoidal wave cam track directly beneath roller at angle t.phi:
+          const relAngle = t.phi - camRot;
+          const waveY = Math.sin(relAngle * CAM_LOBES) * CAM_AMPLITUDE;
+          const slope = Math.cos(relAngle * CAM_LOBES) * CAM_LOBES;
+
+          t.tappetUnit.position.y = waveY;
+          // Roller wheel spins as the cam track passes underneath it
+          t.rollerWheel.rotation.x = camRot * (CAM_RADIUS / 0.12);
+
+          // Helical valve spring compresses between stationary guide sleeve and moving tappet
+          const compression = 1.0 - (dir * waveY) / 0.65;
+          t.springMesh.scale.y = Math.max(0.45, compression);
+
+          // Linked Crown Iris Petal tilts open/closed in exact proportion to the tappet stroke!
+          const petalTilt = dir * (0.28 + 0.45 * morphFraction) + (waveY / CAM_AMPLITUDE) * 0.32;
+          tower.petals[idx].petalPivot.rotation.z = petalTilt;
+        });
+      });
+
+      // 5. HOROLOGICAL BALANCE WHEEL & HAIRSPRING OSCILLATION
+      balanceAssembly.position.y = 4.45 + smoothedExplode * 2.6;
+      const balanceAngle = Math.sin(continuousTime * 7.0) * 0.85;
+      balanceWheelGroup.rotation.y = balanceAngle;
+      const springBreath = 1.0 + Math.sin(continuousTime * 7.0) * 0.08;
+      hairspringMesh.scale.set(springBreath, 1, springBreath);
+
+      // Update live engineering HUD telemetry
+      const strokeMm = ((rackLinearShift + 0.84) * 38.0).toFixed(1);
+      hudRackEl.textContent = `${strokeMm} mm`;
+      const carrierRpm = (128.4 * DRIVE_SPEED_MULTIPLIER).toFixed(1);
+      hudRpmEl.textContent = `${carrierRpm} RPM`;
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  </script>
+</body>
+</html>

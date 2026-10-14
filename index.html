@@ -1,0 +1,1822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AETHER-X // Polychrome Chrono-Kinetic Contraption</title>
+  <style>
+    :root {
+      --panel: rgba(15, 23, 42, 0.84);
+      --border: rgba(56, 189, 248, 0.32);
+      --accent: #0ea5e9;
+      --accent-orange: #f97316;
+      --accent-teal: #14b8a6;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 42%, #334155 0%, #1e293b 55%, #0f172a 100%);
+      font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+      color: var(--text);
+      transition: background 0.4s ease;
+    }
+
+    body.bright-lab {
+      background: radial-gradient(circle at 50% 38%, #e2e8f0 0%, #cbd5e1 52%, #94a3b8 100%);
+    }
+
+    #canvas-container {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+    }
+
+    /* Sci-Fi HUD Overlay */
+    .hud-header {
+      position: fixed;
+      top: 20px;
+      left: 24px;
+      z-index: 10;
+      pointer-events: none;
+      border-left: 4px solid var(--accent-orange);
+      padding: 10px 24px 10px 16px;
+      background: rgba(15, 23, 42, 0.82);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 0 8px 8px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
+      border-right: 1px solid rgba(255, 255, 255, 0.14);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.32);
+    }
+
+    .hud-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: #ffffff;
+    }
+
+    .hud-subtitle {
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      color: #38bdf8;
+      margin-top: 4px;
+    }
+
+    .telemetry-bar {
+      display: flex;
+      gap: 18px;
+      margin-top: 10px;
+      font-size: 11px;
+      color: #cbd5e1;
+    }
+
+    .telemetry-item span {
+      color: #fb923c;
+      font-weight: 700;
+    }
+
+    /* Control Panel */
+    .control-panel {
+      position: fixed;
+      top: 20px;
+      right: 24px;
+      width: 340px;
+      z-index: 10;
+      background: var(--panel);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.42);
+    }
+
+    .panel-section-title {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #38bdf8;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(56, 189, 248, 0.22);
+      padding-bottom: 5px;
+    }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      margin-bottom: 14px;
+    }
+
+    .mode-btn {
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      color: #e2e8f0;
+      padding: 8px 10px;
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: all 0.18s ease;
+      text-align: left;
+    }
+
+    .mode-btn:hover {
+      border-color: #38bdf8;
+      color: #ffffff;
+      background: rgba(14, 165, 233, 0.22);
+    }
+
+    .mode-btn.active {
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.35), rgba(14, 165, 233, 0.35));
+      border-color: #fb923c;
+      color: #ffffff;
+      box-shadow: 0 0 14px rgba(249, 115, 22, 0.28);
+    }
+
+    .control-row {
+      margin-bottom: 11px;
+    }
+
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10.5px;
+      color: #e2e8f0;
+      margin-bottom: 5px;
+    }
+
+    .control-val {
+      color: #38bdf8;
+      font-weight: 700;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 5px;
+      background: rgba(148, 163, 184, 0.3);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #f97316;
+      border: 2px solid #ffffff;
+      cursor: pointer;
+    }
+
+    .toggle-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      margin-top: 8px;
+    }
+
+    .toggle-btn {
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.32);
+      color: #cbd5e1;
+      padding: 7px 6px;
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: all 0.2s;
+    }
+
+    .toggle-btn.active {
+      border-color: #14b8a6;
+      color: #ccfbf1;
+      background: rgba(20, 184, 166, 0.25);
+    }
+
+    .hud-footer {
+      position: fixed;
+      bottom: 16px;
+      left: 24px;
+      z-index: 10;
+      font-size: 10px;
+      letter-spacing: 1.2px;
+      color: #cbd5e1;
+      background: rgba(15, 23, 42, 0.76);
+      padding: 6px 12px;
+      border-radius: 4px;
+      pointer-events: none;
+    }
+  </style>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body class="bright-lab">
+  <div id="canvas-container"></div>
+
+  <!-- Top-Left Sci-Fi Telemetry HUD -->
+  <div class="hud-header">
+    <div class="hud-title">AETHER-X // POLYCHROME CHRONO-ACTUATOR</div>
+    <div class="hud-subtitle">MULTI-STAGE EPICYCLIC DIFFERENTIAL &amp; HYDRAULIC SINGULARITY ENGINE</div>
+    <div class="telemetry-bar">
+      <div class="telemetry-item">MODE: <span id="hud-state">SERAPHIM BLOOM</span></div>
+      <div class="telemetry-item">CORE RPM: <span id="hud-rpm">1,680</span></div>
+      <div class="telemetry-item">ACTUATOR STROKE: <span id="hud-stroke">54.6 mm</span></div>
+      <div class="telemetry-item">SHADOW MAPS: <span id="hud-parts">4K MULTI-RIG</span></div>
+    </div>
+  </div>
+
+  <!-- Interactive Control Deck -->
+  <div class="control-panel">
+    <div class="panel-section-title">
+      <span>KINEMATIC MORPH MATRIX</span>
+      <span id="cycle-indicator">AUTO</span>
+    </div>
+
+    <div class="mode-grid">
+      <button class="mode-btn" data-mode="0">01 // AEGIS SPHERE</button>
+      <button class="mode-btn active" data-mode="1">02 // SERAPHIM</button>
+      <button class="mode-btn" data-mode="2">03 // HELIX VORTEX</button>
+      <button class="mode-btn" data-mode="3">04 // HYPER WAVE</button>
+    </div>
+
+    <div class="panel-section-title">
+      <span>ACTUATION, GI &amp; SHADOW DEPTH</span>
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span>MECHANICAL DRIVE SPEED</span>
+        <span class="control-val" id="val-speed">1.00x</span>
+      </div>
+      <input type="range" id="slider-speed" min="0" max="2.5" step="0.05" value="1.0" />
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span>CAD EXPLODED VIEW</span>
+        <span class="control-val" id="val-explode">0%</span>
+      </div>
+      <input type="range" id="slider-explode" min="0" max="1" step="0.01" value="0" />
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span>MANUAL MORPH PHASE</span>
+        <span class="control-val" id="val-morph">0.50</span>
+      </div>
+      <input type="range" id="slider-morph" min="0" max="1" step="0.01" value="0.50" />
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span>SHADOW DEPTH &amp; CONTRAST</span>
+        <span class="control-val" id="val-shadow">85%</span>
+      </div>
+      <input type="range" id="slider-shadow" min="0.2" max="1.0" step="0.02" value="0.85" />
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span>GI RADIANCE &amp; EXPOSURE</span>
+        <span class="control-val" id="val-exposure">1.25</span>
+      </div>
+      <input type="range" id="slider-exposure" min="0.7" max="2.2" step="0.05" value="1.25" />
+    </div>
+
+    <div class="toggle-row">
+      <button class="toggle-btn active" id="btn-automorph">AUTO-MORPH</button>
+      <button class="toggle-btn active" id="btn-orbit">ORBIT CAM</button>
+      <button class="toggle-btn active" id="btn-brightbg">DAYLIGHT LAB</button>
+      <button class="toggle-btn" id="btn-wireframe">X-RAY CAD</button>
+    </div>
+  </div>
+
+  <div class="hud-footer">
+    DRAG TO ORBIT // SCROLL TO ZOOM // RIGHT-CLICK TO PAN // 4K MULTI-DIRECTIONAL SELF-SHADOWS &amp; GI
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    // ============================================================================
+    // ALL-CAPS CONFIGURATION & USER INPUT STATE VARIABLES
+    // ============================================================================
+    const RADIAL_ARM_COUNT = 12;
+    const ORBITAL_SHROUD_COUNT = 48;
+    const PLANETARY_GEAR_COUNT = 6;
+    const CORE_SHIELD_SEGMENTS = 20;
+    const GIMBAL_BEARING_COUNT = 24;
+    const UMBILICAL_CONDUIT_COUNT = 12;
+    const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+
+    let DRIVE_SPEED_MULTIPLIER = 1.0;
+    let EXPLODED_VIEW_FACTOR = 0.0;
+    let MANUAL_MORPH_VALUE = 0.5;
+    let SHADOW_CONTRAST_LEVEL = 0.85;
+    let GI_EXPOSURE_LEVEL = 1.25;
+    let ACTIVE_MORPH_MODE = 1; // 0: Aegis Sphere, 1: Seraphim, 2: Helix Vortex, 3: Hyper Wave
+    let AUTO_MORPH_ENABLED = true;
+    let AUTO_ORBIT_ENABLED = true;
+    let DAYLIGHT_LAB_ENABLED = true;
+    let WIREFRAME_XRAY_ENABLED = false;
+
+    const MORPH_MODE_NAMES = [
+      'AEGIS SPHERE',
+      'SERAPHIM BLOOM',
+      'HELIX VORTEX',
+      'HYPER WAVE'
+    ];
+
+    // ============================================================================
+    // SCENE, CAMERA & HIGH-CLARITY SHADOW RENDERER
+    // ============================================================================
+    const container = document.getElementById('canvas-container');
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      powerPreference: 'high-performance'
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = GI_EXPOSURE_LEVEL;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    container.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 180);
+    camera.position.set(13.2, 7.8, 15.2);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.maxDistance = 42;
+    controls.minDistance = 4.5;
+    controls.autoRotate = AUTO_ORBIT_ENABLED;
+    controls.autoRotateSpeed = 0.55;
+
+    // ============================================================================
+    // HIGH-CONTRAST STUDIO IBL ENVIRONMENT (PRESERVES DEEP DIRECT SHADOWS)
+    // ============================================================================
+    function createHighContrastStudioEnv(rendererInstance) {
+      const envScene = new THREE.Scene();
+
+      // Dark neutral studio shell so shadowed metal crevices stay rich & dark
+      const domeGeo = new THREE.SphereGeometry(30, 32, 24);
+      const domeMat = new THREE.MeshBasicMaterial({
+        color: 0x111827,
+        side: THREE.BackSide
+      });
+      envScene.add(new THREE.Mesh(domeGeo, domeMat));
+
+      // Discrete overhead key softbox strip (aligned with primary shadow light)
+      const keySoftbox = new THREE.Mesh(
+        new THREE.PlaneGeometry(18, 18),
+        new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide })
+      );
+      keySoftbox.position.set(14, 20, 14);
+      keySoftbox.lookAt(0, 0, 0);
+      envScene.add(keySoftbox);
+
+      // Warm amber grazing reflection strip (+X)
+      const warmStrip = new THREE.Mesh(
+        new THREE.PlaneGeometry(16, 10),
+        new THREE.MeshBasicMaterial({ color: 0xfed7aa, side: THREE.DoubleSide })
+      );
+      warmStrip.position.set(22, 3, -6);
+      warmStrip.lookAt(0, 0, 0);
+      envScene.add(warmStrip);
+
+      // Cool sky-blue secondary reflection strip (-X)
+      const coolStrip = new THREE.Mesh(
+        new THREE.PlaneGeometry(16, 12),
+        new THREE.MeshBasicMaterial({ color: 0x7dd3fc, side: THREE.DoubleSide })
+      );
+      coolStrip.position.set(-20, 8, -12);
+      coolStrip.lookAt(0, 0, 0);
+      envScene.add(coolStrip);
+
+      // Teal rim accent card (+Z)
+      const tealCard = new THREE.Mesh(
+        new THREE.PlaneGeometry(14, 10),
+        new THREE.MeshBasicMaterial({ color: 0x5eead4, side: THREE.DoubleSide })
+      );
+      tealCard.position.set(-10, -2, 22);
+      tealCard.lookAt(0, 0, 0);
+      envScene.add(tealCard);
+
+      // Subtle warm floor bounce card (-Y)
+      const floorCard = new THREE.Mesh(
+        new THREE.PlaneGeometry(28, 28),
+        new THREE.MeshBasicMaterial({ color: 0x475569, side: THREE.DoubleSide })
+      );
+      floorCard.position.set(0, -20, 0);
+      floorCard.rotation.x = -Math.PI * 0.5;
+      envScene.add(floorCard);
+
+      const pmrem = new THREE.PMREMGenerator(rendererInstance);
+      const envMap = pmrem.fromScene(envScene, 0.035).texture;
+      pmrem.dispose();
+      return envMap;
+    }
+
+    scene.environment = createHighContrastStudioEnv(renderer);
+    // Keep IBL moderate so direct shadow-casting lights dominate illumination & shadows!
+    scene.environmentIntensity = 0.42;
+
+    // ============================================================================
+    // PROCEDURAL CNC MACHINED SURFACE, PANEL SEAMS & CAVITY OCCLUSION TEXTURE
+    // ============================================================================
+    function createMachinedSurfaceTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = '#d4d8dd';
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Fine CNC toolpath brushing lines
+      for (let i = 0; i < 3600; i++) {
+        const y = Math.random() * 512;
+        const v = 185 + Math.floor(Math.random() * 45);
+        ctx.fillStyle = `rgb(${v},${v},${v})`;
+        ctx.fillRect(0, y, 512, 1);
+      }
+
+      // Deep dark panel seams & recessed bolt cavities for crisp micro-shadowing
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 3.5;
+      for (let x = 64; x < 512; x += 128) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, 512);
+        ctx.stroke();
+      }
+      for (let y = 64; y < 512; y += 128) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(512, y);
+        ctx.stroke();
+
+        for (let x = 64; x < 512; x += 128) {
+          // Recessed dark shadow ring around bolt
+          ctx.fillStyle = '#1e293b';
+          ctx.beginPath();
+          ctx.arc(x + 14, y + 14, 5.5, 0, Math.PI * 2);
+          ctx.fill();
+          // Raised bolt head center
+          ctx.fillStyle = '#94a3b8';
+          ctx.beginPath();
+          ctx.arc(x + 14, y + 14, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(2, 2);
+      return texture;
+    }
+
+    const cncSurfaceMap = createMachinedSurfaceTexture();
+
+    // ============================================================================
+    // POLYCHROME SCI-FI MATERIAL PALETTE (TUNED FOR CRISP CAST SHADOW RECEPTION)
+    // ============================================================================
+    // Note: Moderate metalness (0.15 - 0.62) ensures strong diffuse + specular response
+    // to Three.js shadow-casting lights so every shadow edge is unmistakable and deep.
+    const MATERIALS = {
+      pearlCeramic: new THREE.MeshPhysicalMaterial({
+        color: 0xf8fafc,
+        map: cncSurfaceMap,
+        metalness: 0.14,
+        roughness: 0.28,
+        clearcoat: 0.65,
+        clearcoatRoughness: 0.18,
+        bumpMap: cncSurfaceMap,
+        bumpScale: 0.018
+      }),
+      aerospaceOrange: new THREE.MeshPhysicalMaterial({
+        color: 0xf97316,
+        map: cncSurfaceMap,
+        metalness: 0.28,
+        roughness: 0.3,
+        clearcoat: 0.6,
+        clearcoatRoughness: 0.18,
+        bumpMap: cncSurfaceMap,
+        bumpScale: 0.015
+      }),
+      cobaltAnodized: new THREE.MeshPhysicalMaterial({
+        color: 0x2563eb,
+        map: cncSurfaceMap,
+        metalness: 0.42,
+        roughness: 0.28,
+        clearcoat: 0.55,
+        clearcoatRoughness: 0.2,
+        bumpMap: cncSurfaceMap,
+        bumpScale: 0.015
+      }),
+      iridescentTeal: new THREE.MeshPhysicalMaterial({
+        color: 0x0d9488,
+        map: cncSurfaceMap,
+        metalness: 0.38,
+        roughness: 0.26,
+        iridescence: 0.75,
+        iridescenceIOR: 1.4,
+        clearcoat: 0.5,
+        bumpMap: cncSurfaceMap,
+        bumpScale: 0.015
+      }),
+      crimsonServo: new THREE.MeshPhysicalMaterial({
+        color: 0xe11d48,
+        map: cncSurfaceMap,
+        metalness: 0.34,
+        roughness: 0.28,
+        clearcoat: 0.6,
+        bumpMap: cncSurfaceMap,
+        bumpScale: 0.014
+      }),
+      violetHarmonic: new THREE.MeshPhysicalMaterial({
+        color: 0x7c3aed,
+        map: cncSurfaceMap,
+        metalness: 0.38,
+        roughness: 0.28,
+        clearcoat: 0.55
+      }),
+      champagneGold: new THREE.MeshStandardMaterial({
+        color: 0xfbbf24,
+        map: cncSurfaceMap,
+        metalness: 0.58,
+        roughness: 0.26,
+        bumpMap: cncSurfaceMap,
+        bumpScale: 0.012
+      }),
+      berylliumCopper: new THREE.MeshStandardMaterial({
+        color: 0xd97706,
+        map: cncSurfaceMap,
+        metalness: 0.55,
+        roughness: 0.28,
+        bumpMap: cncSurfaceMap,
+        bumpScale: 0.014
+      }),
+      brushedSilver: new THREE.MeshStandardMaterial({
+        color: 0xe2e8f0,
+        map: cncSurfaceMap,
+        metalness: 0.48,
+        roughness: 0.26,
+        bumpMap: cncSurfaceMap,
+        bumpScale: 0.014
+      }),
+      mirrorChrome: new THREE.MeshStandardMaterial({
+        color: 0xf8fafc,
+        metalness: 0.72,
+        roughness: 0.14
+      }),
+      machinedSlate: new THREE.MeshStandardMaterial({
+        color: 0x475569,
+        map: cncSurfaceMap,
+        metalness: 0.42,
+        roughness: 0.34,
+        bumpMap: cncSurfaceMap,
+        bumpScale: 0.018
+      }),
+      cyanCoreCrystal: new THREE.MeshStandardMaterial({
+        color: 0x38bdf8,
+        emissive: 0x0284c7,
+        emissiveIntensity: 0.9,
+        roughness: 0.15,
+        metalness: 0.1
+      }),
+      amberEmitter: new THREE.MeshStandardMaterial({
+        color: 0xfbbf24,
+        emissive: 0xd97706,
+        emissiveIntensity: 0.8,
+        roughness: 0.15,
+        metalness: 0.1
+      }),
+      emeraldEmitter: new THREE.MeshStandardMaterial({
+        color: 0x34d399,
+        emissive: 0x059669,
+        emissiveIntensity: 0.8,
+        roughness: 0.15,
+        metalness: 0.1
+      }),
+      dichroicGlass: new THREE.MeshPhysicalMaterial({
+        color: 0xe0f2fe,
+        metalness: 0.05,
+        roughness: 0.08,
+        transmission: 0.82,
+        transparent: true,
+        opacity: 0.85,
+        ior: 1.5,
+        iridescence: 0.65
+      })
+    };
+
+    // ============================================================================
+    // PROCEDURAL MECHANICAL GEOMETRY BUILDERS (GEARS, SPRINGS, BLADES, PISTONS)
+    // ============================================================================
+    function createPrecisionGearGeometry(outerRadius, innerRadius, teethCount, toothDepth, thickness, bevelSize = 0.022) {
+      const shape = new THREE.Shape();
+      const step = (Math.PI * 2) / teethCount;
+
+      for (let i = 0; i < teethCount; i++) {
+        const a0 = i * step;
+        const a1 = a0 + step * 0.2;
+        const a2 = a0 + step * 0.34;
+        const a3 = a0 + step * 0.66;
+        const a4 = a0 + step * 0.8;
+
+        const rBase = outerRadius - toothDepth;
+        const rTip = outerRadius;
+
+        if (i === 0) {
+          shape.moveTo(Math.cos(a0) * rBase, Math.sin(a0) * rBase);
+        } else {
+          shape.lineTo(Math.cos(a0) * rBase, Math.sin(a0) * rBase);
+        }
+        shape.lineTo(Math.cos(a1) * rBase, Math.sin(a1) * rBase);
+        shape.lineTo(Math.cos(a2) * rTip, Math.sin(a2) * rTip);
+        shape.lineTo(Math.cos(a3) * rTip, Math.sin(a3) * rTip);
+        shape.lineTo(Math.cos(a4) * rBase, Math.sin(a4) * rBase);
+      }
+      shape.closePath();
+
+      const holePath = new THREE.Path();
+      holePath.absarc(0, 0, innerRadius, 0, Math.PI * 2, false);
+      shape.holes.push(holePath);
+
+      const midRadius = (outerRadius - toothDepth + innerRadius) * 0.5;
+      const holeRadialSpan = (outerRadius - toothDepth - innerRadius) * 0.27;
+      if (holeRadialSpan > 0.12) {
+        const numWebHoles = 6;
+        for (let k = 0; k < numWebHoles; k++) {
+          const ang = (k / numWebHoles) * Math.PI * 2;
+          const webHole = new THREE.Path();
+          webHole.absarc(
+            Math.cos(ang) * midRadius,
+            Math.sin(ang) * midRadius,
+            holeRadialSpan,
+            0,
+            Math.PI * 2,
+            false
+          );
+          shape.holes.push(webHole);
+        }
+      }
+
+      const geom = new THREE.ExtrudeGeometry(shape, {
+        steps: 1,
+        depth: thickness,
+        bevelEnabled: true,
+        bevelThickness: bevelSize,
+        bevelSize: bevelSize,
+        bevelSegments: 2
+      });
+      geom.center();
+      return geom;
+    }
+
+    function createHelicalSpringGeometry(radius = 0.12, turns = 7, height = 1.0, wireRadius = 0.022) {
+      const points = [];
+      const samples = turns * 20;
+      for (let i = 0; i <= samples; i++) {
+        const t = i / samples;
+        const angle = t * turns * Math.PI * 2;
+        points.push(
+          new THREE.Vector3(
+            Math.cos(angle) * radius,
+            (t - 0.5) * height,
+            Math.sin(angle) * radius
+          )
+        );
+      }
+      const curve = new THREE.CatmullRomCurve3(points);
+      return new THREE.TubeGeometry(curve, samples, wireRadius, 8, false);
+    }
+
+    function createSciFiBladeGeometry(length = 2.8, width = 0.78, thickness = 0.12) {
+      const shape = new THREE.Shape();
+      shape.moveTo(0, -width * 0.35);
+      shape.lineTo(length * 0.28, -width * 0.5);
+      shape.quadraticCurveTo(length * 0.75, -width * 0.42, length, 0);
+      shape.quadraticCurveTo(length * 0.68, width * 0.55, length * 0.2, width * 0.38);
+      shape.lineTo(0, width * 0.22);
+      shape.closePath();
+
+      const slot = new THREE.Path();
+      slot.moveTo(length * 0.22, -width * 0.13);
+      slot.lineTo(length * 0.7, -width * 0.05);
+      slot.lineTo(length * 0.64, width * 0.13);
+      slot.lineTo(length * 0.2, width * 0.08);
+      slot.closePath();
+      shape.holes.push(slot);
+
+      const geom = new THREE.ExtrudeGeometry(shape, {
+        steps: 1,
+        depth: thickness,
+        bevelEnabled: true,
+        bevelThickness: 0.028,
+        bevelSize: 0.028,
+        bevelSegments: 2
+      });
+      geom.translate(0, 0, -thickness * 0.5);
+      return geom;
+    }
+
+    const sharedSpringGeo = createHelicalSpringGeometry(0.082, 6, 0.75, 0.016);
+    sharedSpringGeo.rotateX(Math.PI * 0.5);
+
+    /**
+     * Builds a telescoping hydraulic cylinder + chrome piston rod + dynamic coilover spring
+     * that tracks two 3D attachment pins every frame.
+     */
+    function createHydraulicPistonUnit(cylinderRadius = 0.075, rodRadius = 0.042, maxLen = 2.0, housingMat = MATERIALS.aerospaceOrange) {
+      const root = new THREE.Group();
+
+      const housingGroup = new THREE.Group();
+      const barrelGeo = new THREE.CylinderGeometry(cylinderRadius, cylinderRadius, maxLen * 0.54, 16);
+      barrelGeo.rotateX(Math.PI * 0.5);
+      barrelGeo.translate(0, 0, maxLen * 0.27);
+      const barrelMesh = new THREE.Mesh(barrelGeo, housingMat);
+
+      const collarGeo = new THREE.CylinderGeometry(cylinderRadius * 1.38, cylinderRadius * 1.38, 0.12, 16);
+      collarGeo.rotateX(Math.PI * 0.5);
+      collarGeo.translate(0, 0, maxLen * 0.53);
+      const collarMesh = new THREE.Mesh(collarGeo, MATERIALS.champagneGold);
+
+      const baseClevisGeo = new THREE.SphereGeometry(cylinderRadius * 1.15, 12, 12);
+      const baseClevis = new THREE.Mesh(baseClevisGeo, MATERIALS.brushedSilver);
+
+      const springMesh = new THREE.Mesh(sharedSpringGeo, MATERIALS.berylliumCopper);
+      springMesh.position.z = maxLen * 0.62;
+
+      housingGroup.add(barrelMesh, collarMesh, baseClevis, springMesh);
+
+      const rodGroup = new THREE.Group();
+      const rodGeo = new THREE.CylinderGeometry(rodRadius, rodRadius, maxLen * 0.74, 12);
+      rodGeo.rotateX(Math.PI * 0.5);
+      rodGeo.translate(0, 0, maxLen * 0.37);
+      const rodMesh = new THREE.Mesh(rodGeo, MATERIALS.mirrorChrome);
+
+      const clevisGeo = new THREE.SphereGeometry(cylinderRadius * 1.15, 12, 12);
+      const clevisMesh = new THREE.Mesh(clevisGeo, MATERIALS.champagneGold);
+      rodGroup.add(rodMesh, clevisMesh);
+
+      root.add(housingGroup, rodGroup);
+
+      return {
+        root,
+        housingGroup,
+        rodGroup,
+        springMesh,
+        maxLen,
+        update(pointA, pointB) {
+          housingGroup.position.copy(pointA);
+          housingGroup.lookAt(pointB);
+          rodGroup.position.copy(pointB);
+          rodGroup.lookAt(pointA);
+          const dist = pointA.distanceTo(pointB);
+          const exposedSpan = Math.max(0.18, dist - maxLen * 0.48);
+          springMesh.position.z = maxLen * 0.52 + exposedSpan * 0.45;
+          springMesh.scale.set(1, 1, exposedSpan / 0.75);
+        }
+      };
+    }
+
+    // ============================================================================
+    // MASTER CONTRAPTION HIERARCHY
+    // ============================================================================
+    const contraptionRoot = new THREE.Group();
+    scene.add(contraptionRoot);
+
+    // 1. QUANTUM DIFFERENTIAL BEVEL CORE & 20 IRIS-SHUTTER CONTAINMENT MODULES
+    const coreGroup = new THREE.Group();
+    contraptionRoot.add(coreGroup);
+
+    const innerCoreMesh = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.78, 2),
+      MATERIALS.cyanCoreCrystal
+    );
+    coreGroup.add(innerCoreMesh);
+
+    const coreLatticeMesh = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(0.96, 1),
+      new THREE.MeshStandardMaterial({
+        color: 0xfbbf24,
+        metalness: 0.7,
+        roughness: 0.2,
+        wireframe: true
+      })
+    );
+    coreGroup.add(coreLatticeMesh);
+
+    // 4-Way Bevel Gear Differential Spider inside the containment vessel
+    const bevelSpiderGroup = new THREE.Group();
+    coreGroup.add(bevelSpiderGroup);
+    const bevelSpiderGears = [];
+    const bevelGearGeo = createPrecisionGearGeometry(0.56, 0.18, 16, 0.08, 0.14);
+
+    for (let b = 0; b < 4; b++) {
+      const bAngle = (b / 4) * Math.PI * 2;
+      const bHolder = new THREE.Group();
+      bHolder.rotation.y = bAngle;
+      const bMesh = new THREE.Mesh(
+        bevelGearGeo,
+        b % 2 === 0 ? MATERIALS.champagneGold : MATERIALS.crimsonServo
+      );
+      bMesh.position.set(0, 0, 1.06);
+      bHolder.add(bMesh);
+      bevelSpiderGroup.add(bHolder);
+      bevelSpiderGears.push({ mesh: bMesh, dir: b % 2 === 0 ? 1 : -1 });
+    }
+
+    const glassShellMesh = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(1.42, 2),
+      MATERIALS.dichroicGlass
+    );
+    glassShellMesh.userData.noShadowCast = true;
+    coreGroup.add(glassShellMesh);
+
+    // 20 Icosahedral Multi-Part Articulated Armor Modules
+    const coreShieldPlates = [];
+    const icosaRef = new THREE.IcosahedronGeometry(1.76, 0);
+    const posAttr = icosaRef.attributes.position;
+    const platePalette = [
+      MATERIALS.pearlCeramic,
+      MATERIALS.aerospaceOrange,
+      MATERIALS.cobaltAnodized,
+      MATERIALS.iridescentTeal
+    ];
+
+    for (let i = 0; i < posAttr.count; i += 3) {
+      const idx = i / 3;
+      const vA = new THREE.Vector3().fromBufferAttribute(posAttr, i);
+      const vB = new THREE.Vector3().fromBufferAttribute(posAttr, i + 1);
+      const vC = new THREE.Vector3().fromBufferAttribute(posAttr, i + 2);
+      const center = new THREE.Vector3().add(vA).add(vB).add(vC).divideScalar(3);
+      const normal = center.clone().normalize();
+
+      const plateHolder = new THREE.Group();
+      plateHolder.position.copy(center);
+      plateHolder.lookAt(center.clone().add(normal));
+
+      const tileGeo = new THREE.CylinderGeometry(0.52, 0.64, 0.16, 6);
+      tileGeo.rotateX(Math.PI * 0.5);
+      const tileMesh = new THREE.Mesh(tileGeo, platePalette[idx % platePalette.length]);
+
+      const subTileGeo = new THREE.CylinderGeometry(0.34, 0.4, 0.1, 6);
+      subTileGeo.rotateX(Math.PI * 0.5);
+      const subTileMesh = new THREE.Mesh(subTileGeo, MATERIALS.machinedSlate);
+      subTileMesh.position.z = 0.1;
+
+      const trimGeo = new THREE.TorusGeometry(0.32, 0.028, 8, 6);
+      const trimMesh = new THREE.Mesh(trimGeo, MATERIALS.champagneGold);
+      trimMesh.position.z = 0.15;
+
+      for (let s of [-0.22, 0.22]) {
+        const pinGeo = new THREE.CylinderGeometry(0.032, 0.032, 0.72, 8);
+        pinGeo.rotateX(Math.PI * 0.5);
+        pinGeo.translate(s, 0, -0.34);
+        const pinMesh = new THREE.Mesh(pinGeo, MATERIALS.mirrorChrome);
+        plateHolder.add(pinMesh);
+      }
+
+      plateHolder.add(tileMesh, subTileMesh, trimMesh);
+      coreGroup.add(plateHolder);
+
+      coreShieldPlates.push({
+        holder: plateHolder,
+        trimMesh,
+        normal,
+        baseDist: center.length(),
+        index: idx
+      });
+    }
+
+    // ============================================================================
+    // 2. FOUR NESTED GYROSCOPIC GIMBAL RINGS WITH BALL BEARINGS & IDLER PINIONS
+    // ============================================================================
+    const gimbalRings = [];
+    const gimbalConfigs = [
+      { radius: 2.38, teeth: 40, thickness: 0.18, mat: MATERIALS.pearlCeramic, accent: MATERIALS.aerospaceOrange },
+      { radius: 2.86, teeth: 48, thickness: 0.21, mat: MATERIALS.cobaltAnodized, accent: MATERIALS.champagneGold },
+      { radius: 3.34, teeth: 56, thickness: 0.20, mat: MATERIALS.brushedSilver, accent: MATERIALS.crimsonServo },
+      { radius: 3.82, teeth: 64, thickness: 0.19, mat: MATERIALS.iridescentTeal, accent: MATERIALS.champagneGold }
+    ];
+
+    const idolPinionGeo = createPrecisionGearGeometry(0.28, 0.09, 10, 0.05, 0.24);
+    const bearingBallGeo = new THREE.SphereGeometry(0.068, 12, 12);
+
+    let parentGimbal = contraptionRoot;
+    gimbalConfigs.forEach((cfg, idx) => {
+      const ringGroup = new THREE.Group();
+      const gearRingGeo = createPrecisionGearGeometry(
+        cfg.radius,
+        cfg.radius - 0.28,
+        cfg.teeth,
+        0.08,
+        cfg.thickness,
+        0.022
+      );
+      const gearRingMesh = new THREE.Mesh(gearRingGeo, cfg.mat);
+      ringGroup.add(gearRingMesh);
+
+      const raceGeo = new THREE.TorusGeometry(cfg.radius - 0.15, 0.032, 10, 96);
+      const raceMesh = new THREE.Mesh(raceGeo, cfg.accent);
+      ringGroup.add(raceMesh);
+
+      const bearingCarrier = new THREE.Group();
+      for (let b = 0; b < GIMBAL_BEARING_COUNT; b++) {
+        const ang = (b / GIMBAL_BEARING_COUNT) * Math.PI * 2;
+        const ball = new THREE.Mesh(bearingBallGeo, MATERIALS.mirrorChrome);
+        ball.position.set(
+          Math.cos(ang) * (cfg.radius - 0.22),
+          Math.sin(ang) * (cfg.radius - 0.22),
+          0
+        );
+        bearingCarrier.add(ball);
+      }
+      ringGroup.add(bearingCarrier);
+
+      const pinions = [];
+      for (let p = 0; p < 4; p++) {
+        const pAng = (p / 4) * Math.PI * 2 + Math.PI * 0.25;
+        const pinionMesh = new THREE.Mesh(idolPinionGeo, MATERIALS.champagneGold);
+        pinionMesh.position.set(
+          Math.cos(pAng) * (cfg.radius + 0.14),
+          Math.sin(pAng) * (cfg.radius + 0.14),
+          0
+        );
+        ringGroup.add(pinionMesh);
+        pinions.push(pinionMesh);
+      }
+
+      for (let s = -1; s <= 1; s += 2) {
+        const pinGeo = new THREE.CylinderGeometry(0.11, 0.11, 0.48, 16);
+        pinGeo.rotateZ(Math.PI * 0.5);
+        const pinMesh = new THREE.Mesh(pinGeo, MATERIALS.aerospaceOrange);
+        pinMesh.position.set(s * (cfg.radius - 0.04), 0, 0);
+        ringGroup.add(pinMesh);
+      }
+
+      parentGimbal.add(ringGroup);
+      gimbalRings.push({ ringGroup, bearingCarrier, pinions, idx });
+      parentGimbal = ringGroup;
+    });
+
+    // ============================================================================
+    // 3. DUAL MULTI-STAGE EPICYCLIC GEARBOX TOWERS + CRANK CON-RODS & SPRINGS
+    // ============================================================================
+    const axialTowers = [];
+    const sunGearGeo = createPrecisionGearGeometry(1.28, 0.45, 24, 0.11, 0.26);
+    const planetGearGeo = createPrecisionGearGeometry(0.66, 0.18, 12, 0.11, 0.24);
+    const ringCarrierGeo = createPrecisionGearGeometry(2.85, 2.46, 56, 0.09, 0.22);
+    const secondaryPlanetGeo = createPrecisionGearGeometry(0.46, 0.14, 10, 0.08, 0.2);
+    const towerSpringGeo = createHelicalSpringGeometry(0.16, 6, 0.9, 0.024);
+
+    for (let side of [-1, 1]) {
+      const towerGroup = new THREE.Group();
+      towerGroup.position.y = side * 3.35;
+      contraptionRoot.add(towerGroup);
+
+      const shaftMesh = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.4, 0.4, 3.6, 24),
+        MATERIALS.mirrorChrome
+      );
+      towerGroup.add(shaftMesh);
+
+      const coilSpringMesh = new THREE.Mesh(
+        createHelicalSpringGeometry(0.56, 8, 2.2, 0.048),
+        MATERIALS.berylliumCopper
+      );
+      towerGroup.add(coilSpringMesh);
+
+      const sunMesh = new THREE.Mesh(sunGearGeo, MATERIALS.champagneGold);
+      sunMesh.rotation.x = Math.PI * 0.5;
+      towerGroup.add(sunMesh);
+
+      const outerRingMesh = new THREE.Mesh(
+        ringCarrierGeo,
+        side > 0 ? MATERIALS.cobaltAnodized : MATERIALS.iridescentTeal
+      );
+      outerRingMesh.rotation.x = Math.PI * 0.5;
+      towerGroup.add(outerRingMesh);
+
+      const carrierGroup = new THREE.Group();
+      towerGroup.add(carrierGroup);
+
+      const planets = [];
+      const tappets = [];
+      const orbitDist = 1.28 + 0.66 - 0.08;
+
+      for (let p = 0; p < PLANETARY_GEAR_COUNT; p++) {
+        const angle = (p / PLANETARY_GEAR_COUNT) * Math.PI * 2;
+        const planetPivot = new THREE.Group();
+        planetPivot.position.set(Math.cos(angle) * orbitDist, 0, Math.sin(angle) * orbitDist);
+
+        const pMesh = new THREE.Mesh(
+          planetGearGeo,
+          p % 2 === 0 ? MATERIALS.pearlCeramic : MATERIALS.brushedSilver
+        );
+        pMesh.rotation.x = Math.PI * 0.5;
+        planetPivot.add(pMesh);
+
+        const pMesh2 = new THREE.Mesh(
+          secondaryPlanetGeo,
+          p % 2 === 0 ? MATERIALS.aerospaceOrange : MATERIALS.violetHarmonic
+        );
+        pMesh2.rotation.x = Math.PI * 0.5;
+        pMesh2.position.y = side * 0.26;
+        planetPivot.add(pMesh2);
+
+        const tappetGroup = new THREE.Group();
+        const tappetRod = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.075, 0.075, 1.45, 12),
+          MATERIALS.mirrorChrome
+        );
+        const tappetSpring = new THREE.Mesh(towerSpringGeo, MATERIALS.champagneGold);
+        tappetSpring.position.y = side * 0.35;
+
+        const tappetHead = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.28, 0.2, 0.32, 6),
+          p % 2 === 0 ? MATERIALS.aerospaceOrange : MATERIALS.cobaltAnodized
+        );
+        tappetHead.position.y = side * 0.78;
+
+        const emitterCap = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.16, 0.16, 0.08, 12),
+          side > 0 ? MATERIALS.cyanCoreCrystal : MATERIALS.amberEmitter
+        );
+        emitterCap.position.y = side * 0.96;
+
+        tappetGroup.add(tappetRod, tappetSpring, tappetHead, emitterCap);
+        planetPivot.add(tappetGroup);
+
+        carrierGroup.add(planetPivot);
+        planets.push(pMesh, pMesh2);
+        tappets.push({ group: tappetGroup, spring: tappetSpring, phase: angle });
+      }
+
+      axialTowers.push({
+        side,
+        towerGroup,
+        sunMesh,
+        outerRingMesh,
+        carrierGroup,
+        planets,
+        tappets
+      });
+    }
+
+    // ============================================================================
+    // 4. TWELVE 3-SEGMENT RADIAL BIO-MECHANICAL ARMS WITH DUAL HYDRAULICS,
+    //    4-BAR LINKAGES, WRIST MICRO-TURBINES & ARTICULATED PINCER CLAWS
+    // ============================================================================
+    const radialArms = [];
+    const primaryBladeGeo = createSciFiBladeGeometry(3.15, 0.88, 0.14);
+    const secondaryFeatherGeo = createSciFiBladeGeometry(2.15, 0.52, 0.1);
+    const wristClawGeo = createSciFiBladeGeometry(1.15, 0.28, 0.07);
+    const knuckleGearGeo = createPrecisionGearGeometry(0.48, 0.16, 14, 0.07, 0.22);
+    const wristTurbineGeo = createPrecisionGearGeometry(0.36, 0.1, 12, 0.06, 0.14);
+
+    const armColorCycle = [
+      MATERIALS.pearlCeramic,
+      MATERIALS.aerospaceOrange,
+      MATERIALS.cobaltAnodized,
+      MATERIALS.iridescentTeal
+    ];
+
+    for (let i = 0; i < RADIAL_ARM_COUNT; i++) {
+      const azimuth = (i / RADIAL_ARM_COUNT) * Math.PI * 2;
+      const armRoot = new THREE.Group();
+      armRoot.rotation.y = azimuth;
+      contraptionRoot.add(armRoot);
+
+      const manifoldGroup = new THREE.Group();
+      manifoldGroup.position.set(3.85, 0, 0);
+      armRoot.add(manifoldGroup);
+
+      const mountBox = new THREE.Mesh(
+        new THREE.BoxGeometry(0.82, 1.05, 0.68),
+        i % 2 === 0 ? MATERIALS.machinedSlate : MATERIALS.cobaltAnodized
+      );
+      manifoldGroup.add(mountBox);
+
+      for (let zSide of [-0.36, 0.36]) {
+        const valve = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.14, 0.14, 0.65, 12),
+          MATERIALS.aerospaceOrange
+        );
+        valve.position.set(-0.1, 0.15, zSide);
+        manifoldGroup.add(valve);
+      }
+
+      const shoulderPivot = new THREE.Group();
+      shoulderPivot.position.set(0.36, 0, 0);
+      manifoldGroup.add(shoulderPivot);
+
+      const shoulderGear = new THREE.Mesh(knuckleGearGeo, MATERIALS.champagneGold);
+      shoulderPivot.add(shoulderGear);
+
+      const upperArmLen = 2.2;
+      const trussBeamGeo = new THREE.BoxGeometry(upperArmLen, 0.24, 0.36);
+      trussBeamGeo.translate(upperArmLen * 0.5, 0, 0);
+      const trussBeam = new THREE.Mesh(trussBeamGeo, MATERIALS.brushedSilver);
+      shoulderPivot.add(trussBeam);
+
+      const parallelLinkGeo = new THREE.CylinderGeometry(0.04, 0.04, upperArmLen * 0.92, 10);
+      parallelLinkGeo.rotateZ(Math.PI * 0.5);
+      parallelLinkGeo.translate(upperArmLen * 0.48, 0.28, 0);
+      const parallelLink = new THREE.Mesh(parallelLinkGeo, MATERIALS.mirrorChrome);
+      shoulderPivot.add(parallelLink);
+
+      const wingMat = armColorCycle[i % armColorCycle.length];
+      const mainWingMesh = new THREE.Mesh(primaryBladeGeo, wingMat);
+      mainWingMesh.position.set(0.18, 0.18, 0);
+      shoulderPivot.add(mainWingMesh);
+
+      for (let zOff of [-0.22, 0.22]) {
+        const fin = new THREE.Mesh(
+          secondaryFeatherGeo,
+          i % 2 === 0 ? MATERIALS.cobaltAnodized : MATERIALS.pearlCeramic
+        );
+        fin.scale.set(0.65, 0.55, 0.8);
+        fin.position.set(0.55, 0.32, zOff);
+        fin.rotation.x = zOff * 0.6;
+        shoulderPivot.add(fin);
+      }
+
+      const elbowPivot = new THREE.Group();
+      elbowPivot.position.set(upperArmLen, 0, 0);
+      shoulderPivot.add(elbowPivot);
+
+      const elbowGear = new THREE.Mesh(knuckleGearGeo, MATERIALS.crimsonServo);
+      elbowGear.scale.setScalar(0.82);
+      elbowPivot.add(elbowGear);
+
+      const forearmLen = 1.65;
+      const forearmBlade = new THREE.Mesh(
+        secondaryFeatherGeo,
+        armColorCycle[(i + 1) % armColorCycle.length]
+      );
+      elbowPivot.add(forearmBlade);
+
+      const subBlade = new THREE.Mesh(secondaryFeatherGeo, MATERIALS.machinedSlate);
+      subBlade.scale.set(0.75, 0.75, 1.25);
+      subBlade.position.set(0.35, -0.16, 0);
+      elbowPivot.add(subBlade);
+
+      const wristPivot = new THREE.Group();
+      wristPivot.position.set(forearmLen, 0.05, 0);
+      elbowPivot.add(wristPivot);
+
+      const wristTurbine = new THREE.Mesh(wristTurbineGeo, MATERIALS.champagneGold);
+      wristPivot.add(wristTurbine);
+
+      const upperClaw = new THREE.Mesh(wristClawGeo, MATERIALS.pearlCeramic);
+      upperClaw.position.set(0.1, 0.12, 0);
+      const lowerClaw = new THREE.Mesh(wristClawGeo, MATERIALS.aerospaceOrange);
+      lowerClaw.scale.y = -0.85;
+      lowerClaw.position.set(0.1, -0.12, 0);
+      wristPivot.add(upperClaw, lowerClaw);
+
+      const manifoldAnchorA = new THREE.Object3D();
+      manifoldAnchorA.position.set(-0.22, -0.62, 0);
+      manifoldGroup.add(manifoldAnchorA);
+
+      const upperArmLugA = new THREE.Object3D();
+      upperArmLugA.position.set(1.28, -0.24, 0);
+      shoulderPivot.add(upperArmLugA);
+
+      const primaryHydraulic = createHydraulicPistonUnit(
+        0.088,
+        0.048,
+        1.95,
+        i % 2 === 0 ? MATERIALS.aerospaceOrange : MATERIALS.crimsonServo
+      );
+      manifoldGroup.add(primaryHydraulic.root);
+
+      const upperArmAnchorB = new THREE.Object3D();
+      upperArmAnchorB.position.set(0.82, 0.28, 0);
+      shoulderPivot.add(upperArmAnchorB);
+
+      const forearmLugB = new THREE.Object3D();
+      forearmLugB.position.set(0.95, 0.2, 0);
+      elbowPivot.add(forearmLugB);
+
+      const secondaryHydraulic = createHydraulicPistonUnit(
+        0.066,
+        0.036,
+        1.55,
+        MATERIALS.cobaltAnodized
+      );
+      manifoldGroup.add(secondaryHydraulic.root);
+
+      radialArms.push({
+        index: i,
+        azimuth,
+        armRoot,
+        manifoldGroup,
+        shoulderPivot,
+        elbowPivot,
+        wristPivot,
+        shoulderGear,
+        elbowGear,
+        wristTurbine,
+        upperClaw,
+        lowerClaw,
+        manifoldAnchorA,
+        upperArmLugA,
+        upperArmAnchorB,
+        forearmLugB,
+        primaryHydraulic,
+        secondaryHydraulic
+      });
+    }
+
+    // ============================================================================
+    // 5. DOUBLE-HELIX ORBITAL SHROUD (48 POLYCHROME ARTICULATED LOUVER VANES)
+    // ============================================================================
+    const orbitalRibsGroup = new THREE.Group();
+    contraptionRoot.add(orbitalRibsGroup);
+
+    const orbitalRibs = [];
+    const ribArcGeo = new THREE.TorusGeometry(1.05, 0.052, 12, 32, Math.PI * 0.68);
+    const vaneBoxGeo = new THREE.BoxGeometry(0.16, 0.55, 0.34);
+
+    for (let i = 0; i < ORBITAL_SHROUD_COUNT; i++) {
+      const t = i / ORBITAL_SHROUD_COUNT;
+      const angle = t * Math.PI * 2;
+
+      const ribCarrier = new THREE.Group();
+      orbitalRibsGroup.add(ribCarrier);
+
+      const ribMat = armColorCycle[i % armColorCycle.length];
+      const ribMesh = new THREE.Mesh(ribArcGeo, ribMat);
+      ribCarrier.add(ribMesh);
+
+      const louverVane = new THREE.Mesh(
+        vaneBoxGeo,
+        i % 2 === 0 ? MATERIALS.champagneGold : MATERIALS.pearlCeramic
+      );
+      louverVane.position.set(1.05, 0, 0);
+      ribCarrier.add(louverVane);
+
+      const emitterNode = new THREE.Mesh(
+        new THREE.BoxGeometry(0.09, 0.26, 0.09),
+        i % 3 === 0 ? MATERIALS.cyanCoreCrystal : i % 3 === 1 ? MATERIALS.amberEmitter : MATERIALS.emeraldEmitter
+      );
+      emitterNode.position.set(1.16, 0, 0);
+      ribCarrier.add(emitterNode);
+
+      orbitalRibs.push({
+        index: i,
+        angle,
+        ribCarrier,
+        ribMesh,
+        louverVane
+      });
+    }
+
+    // ============================================================================
+    // 6. TWELVE ARTICULATED UMBILICAL POWER & CRYO-COOLANT CONDUIT SPINES
+    // ============================================================================
+    const umbilicalSpines = [];
+    const vertebraBeadGeo = new THREE.CylinderGeometry(0.095, 0.095, 0.14, 12);
+    vertebraBeadGeo.rotateX(Math.PI * 0.5);
+    const vertebraCollarGeo = new THREE.TorusGeometry(0.105, 0.022, 8, 16);
+    const beadsPerConduit = 9;
+
+    for (let c = 0; c < UMBILICAL_CONDUIT_COUNT; c++) {
+      const cAngle = (c / UMBILICAL_CONDUIT_COUNT) * Math.PI * 2 + Math.PI / 12;
+      const side = c % 2 === 0 ? 1 : -1;
+      const spineGroup = new THREE.Group();
+      contraptionRoot.add(spineGroup);
+
+      const beads = [];
+      for (let b = 0; b < beadsPerConduit; b++) {
+        const beadHolder = new THREE.Group();
+        const beadMat = b % 2 === 0 ? MATERIALS.machinedSlate : MATERIALS.aerospaceOrange;
+        const beadMesh = new THREE.Mesh(vertebraBeadGeo, beadMat);
+        const collarMesh = new THREE.Mesh(vertebraCollarGeo, MATERIALS.champagneGold);
+        beadHolder.add(beadMesh, collarMesh);
+        spineGroup.add(beadHolder);
+        beads.push(beadHolder);
+      }
+
+      umbilicalSpines.push({ cAngle, side, beads });
+    }
+
+    // ============================================================================
+    // 7. ARCHITECTURAL CALIBRATION PEDESTAL RING (SHADOW CATCHER STAGE)
+    // ============================================================================
+    const studioPedestalGroup = new THREE.Group();
+    studioPedestalGroup.position.y = -6.0;
+    scene.add(studioPedestalGroup);
+
+    const baseDiscMesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(10.5, 11.2, 0.32, 64),
+      new THREE.MeshStandardMaterial({
+        color: 0xe2e8f0,
+        map: cncSurfaceMap,
+        metalness: 0.12,
+        roughness: 0.55
+      })
+    );
+    studioPedestalGroup.add(baseDiscMesh);
+
+    const outerCalibrationRing = new THREE.Mesh(
+      createPrecisionGearGeometry(9.6, 8.7, 96, 0.12, 0.2),
+      MATERIALS.machinedSlate
+    );
+    outerCalibrationRing.rotation.x = Math.PI * 0.5;
+    outerCalibrationRing.position.y = 0.18;
+    studioPedestalGroup.add(outerCalibrationRing);
+
+    const innerCalibrationRing = new THREE.Mesh(
+      new THREE.RingGeometry(4.5, 4.7, 64),
+      MATERIALS.aerospaceOrange
+    );
+    innerCalibrationRing.rotation.x = -Math.PI * 0.5;
+    innerCalibrationRing.position.y = 0.17;
+    studioPedestalGroup.add(innerCalibrationRing);
+
+    // ============================================================================
+    // ENABLE UNIVERSAL SELF-SHADOWING ACROSS EVERY MECHANICAL MESH
+    // ============================================================================
+    // Every gear tooth, piston rod, spring, gimbal, claw, and plate both casts
+    // and receives real-time shadows onto/from its neighbors.
+    contraptionRoot.traverse((child) => {
+      if (child.isMesh && !child.userData.noShadowCast) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+    });
+    studioPedestalGroup.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+    });
+
+    // ============================================================================
+    // 8. HIGH-CONTRAST MULTI-SHADOW GLOBAL ILLUMINATION LIGHTING RIG
+    // ============================================================================
+    // 1) Primary 4K Studio Sun Key Light (casts primary crisp structural shadows)
+    const keySunLight = new THREE.DirectionalLight(0xfffbeb, 5.4);
+    keySunLight.position.set(13, 19, 13);
+    keySunLight.castShadow = true;
+    keySunLight.shadow.mapSize.width = 4096;
+    keySunLight.shadow.mapSize.height = 4096;
+    keySunLight.shadow.camera.near = 2;
+    keySunLight.shadow.camera.far = 42;
+    const d = 9.2;
+    keySunLight.shadow.camera.left = -d;
+    keySunLight.shadow.camera.right = d;
+    keySunLight.shadow.camera.top = d;
+    keySunLight.shadow.camera.bottom = -d;
+    keySunLight.shadow.bias = -0.00018;
+    keySunLight.shadow.normalBias = 0.022;
+    scene.add(keySunLight);
+
+    // 2) Overhead Zenith Studio SpotLight (casts vertical contact shadows down through tiers & onto pedestal)
+    const zenithSpotLight = new THREE.SpotLight(0xffffff, 165);
+    zenithSpotLight.position.set(-2, 22, 3);
+    zenithSpotLight.angle = Math.PI / 3.2;
+    zenithSpotLight.penumbra = 0.65;
+    zenithSpotLight.decay = 1.65;
+    zenithSpotLight.distance = 55;
+    zenithSpotLight.castShadow = true;
+    zenithSpotLight.shadow.mapSize.width = 2048;
+    zenithSpotLight.shadow.mapSize.height = 2048;
+    zenithSpotLight.shadow.camera.near = 4;
+    zenithSpotLight.shadow.camera.far = 40;
+    zenithSpotLight.shadow.bias = -0.00015;
+    zenithSpotLight.shadow.normalBias = 0.02;
+    scene.add(zenithSpotLight);
+
+    // 3) Secondary Cool Rim/Cross Light (also casts shadows so shadowed crevices stay dimensional!)
+    const coolCrossLight = new THREE.DirectionalLight(0x93c5fd, 1.85);
+    coolCrossLight.position.set(-14, 10, -11);
+    coolCrossLight.castShadow = true;
+    coolCrossLight.shadow.mapSize.width = 2048;
+    coolCrossLight.shadow.mapSize.height = 2048;
+    coolCrossLight.shadow.camera.near = 2;
+    coolCrossLight.shadow.camera.far = 42;
+    coolCrossLight.shadow.camera.left = -d;
+    coolCrossLight.shadow.camera.right = d;
+    coolCrossLight.shadow.camera.top = d;
+    coolCrossLight.shadow.camera.bottom = -d;
+    coolCrossLight.shadow.bias = -0.0002;
+    coolCrossLight.shadow.normalBias = 0.022;
+    scene.add(coolCrossLight);
+
+    // 4) Controlled GI Bounce Fill Lights (modulated by SHADOW_CONTRAST_LEVEL so shadows stay deep)
+    const hemiLight = new THREE.HemisphereLight(0xe0f2fe, 0xfde68a, 0.48);
+    hemiLight.position.set(0, 25, 0);
+    scene.add(hemiLight);
+
+    const floorRadiosityLight = new THREE.DirectionalLight(0xfed7aa, 0.55);
+    floorRadiosityLight.position.set(0, -18, 6);
+    scene.add(floorRadiosityLight);
+
+    const corePulseLight = new THREE.PointLight(0x38bdf8, 12, 12);
+    scene.add(corePulseLight);
+
+    function applyShadowContrastSettings() {
+      // Higher SHADOW_CONTRAST_LEVEL reduces un-shadowed ambient fill and boosts shadow-casting key light
+      const fillFactor = 1.0 - SHADOW_CONTRAST_LEVEL * 0.78;
+      hemiLight.intensity = 1.35 * fillFactor;
+      floorRadiosityLight.intensity = 1.2 * fillFactor;
+      scene.environmentIntensity = (0.28 + 0.55 * fillFactor) * (GI_EXPOSURE_LEVEL / 1.25);
+      keySunLight.intensity = 4.2 + SHADOW_CONTRAST_LEVEL * 1.8;
+      zenithSpotLight.intensity = 110 + SHADOW_CONTRAST_LEVEL * 75;
+    }
+    applyShadowContrastSettings();
+
+    // ============================================================================
+    // UI EVENT BINDINGS
+    // ============================================================================
+    const hudStateEl = document.getElementById('hud-state');
+    const hudRpmEl = document.getElementById('hud-rpm');
+    const hudStrokeEl = document.getElementById('hud-stroke');
+    const cycleIndicatorEl = document.getElementById('cycle-indicator');
+
+    const modeBtns = document.querySelectorAll('.mode-btn');
+    modeBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        ACTIVE_MORPH_MODE = parseInt(btn.dataset.mode, 10);
+        modeBtns.forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        hudStateEl.textContent = MORPH_MODE_NAMES[ACTIVE_MORPH_MODE];
+      });
+    });
+
+    const sliderSpeed = document.getElementById('slider-speed');
+    const valSpeed = document.getElementById('val-speed');
+    sliderSpeed.addEventListener('input', (e) => {
+      DRIVE_SPEED_MULTIPLIER = parseFloat(e.target.value);
+      valSpeed.textContent = `${DRIVE_SPEED_MULTIPLIER.toFixed(2)}x`;
+    });
+
+    const sliderExplode = document.getElementById('slider-explode');
+    const valExplode = document.getElementById('val-explode');
+    sliderExplode.addEventListener('input', (e) => {
+      EXPLODED_VIEW_FACTOR = parseFloat(e.target.value);
+      valExplode.textContent = `${Math.round(EXPLODED_VIEW_FACTOR * 100)}%`;
+    });
+
+    const sliderMorph = document.getElementById('slider-morph');
+    const valMorph = document.getElementById('val-morph');
+    sliderMorph.addEventListener('input', (e) => {
+      MANUAL_MORPH_VALUE = parseFloat(e.target.value);
+      valMorph.textContent = MANUAL_MORPH_VALUE.toFixed(2);
+      if (AUTO_MORPH_ENABLED) {
+        AUTO_MORPH_ENABLED = false;
+        btnAutoMorph.classList.remove('active');
+        cycleIndicatorEl.textContent = 'MANUAL';
+      }
+    });
+
+    const sliderShadow = document.getElementById('slider-shadow');
+    const valShadow = document.getElementById('val-shadow');
+    sliderShadow.addEventListener('input', (e) => {
+      SHADOW_CONTRAST_LEVEL = parseFloat(e.target.value);
+      valShadow.textContent = `${Math.round(SHADOW_CONTRAST_LEVEL * 100)}%`;
+      applyShadowContrastSettings();
+    });
+
+    const sliderExposure = document.getElementById('slider-exposure');
+    const valExposure = document.getElementById('val-exposure');
+    sliderExposure.addEventListener('input', (e) => {
+      GI_EXPOSURE_LEVEL = parseFloat(e.target.value);
+      renderer.toneMappingExposure = GI_EXPOSURE_LEVEL;
+      valExposure.textContent = GI_EXPOSURE_LEVEL.toFixed(2);
+      applyShadowContrastSettings();
+    });
+
+    const btnAutoMorph = document.getElementById('btn-automorph');
+    btnAutoMorph.addEventListener('click', () => {
+      AUTO_MORPH_ENABLED = !AUTO_MORPH_ENABLED;
+      btnAutoMorph.classList.toggle('active', AUTO_MORPH_ENABLED);
+      cycleIndicatorEl.textContent = AUTO_MORPH_ENABLED ? 'AUTO' : 'MANUAL';
+    });
+
+    const btnOrbit = document.getElementById('btn-orbit');
+    btnOrbit.addEventListener('click', () => {
+      AUTO_ORBIT_ENABLED = !AUTO_ORBIT_ENABLED;
+      controls.autoRotate = AUTO_ORBIT_ENABLED;
+      btnOrbit.classList.toggle('active', AUTO_ORBIT_ENABLED);
+    });
+
+    const btnBrightBg = document.getElementById('btn-brightbg');
+    btnBrightBg.addEventListener('click', () => {
+      DAYLIGHT_LAB_ENABLED = !DAYLIGHT_LAB_ENABLED;
+      document.body.classList.toggle('bright-lab', DAYLIGHT_LAB_ENABLED);
+      btnBrightBg.classList.toggle('active', DAYLIGHT_LAB_ENABLED);
+    });
+
+    const btnWireframe = document.getElementById('btn-wireframe');
+    btnWireframe.addEventListener('click', () => {
+      WIREFRAME_XRAY_ENABLED = !WIREFRAME_XRAY_ENABLED;
+      btnWireframe.classList.toggle('active', WIREFRAME_XRAY_ENABLED);
+      Object.values(MATERIALS).forEach((mat) => {
+        mat.wireframe = WIREFRAME_XRAY_ENABLED;
+      });
+    });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // ============================================================================
+    // REAL-TIME KINEMATIC SIMULATION & MORPH SOLVER LOOP
+    // ============================================================================
+    const clock = new THREE.Clock();
+    let mechanicalTime = 0;
+    let smoothedExplode = 0;
+
+    const tmpWorldA = new THREE.Vector3();
+    const tmpWorldB = new THREE.Vector3();
+    const tmpBeadPos = new THREE.Vector3();
+    const tmpNextBeadPos = new THREE.Vector3();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const dt = Math.min(clock.getDelta(), 0.05);
+      mechanicalTime += dt * DRIVE_SPEED_MULTIPLIER;
+      smoothedExplode = THREE.MathUtils.lerp(smoothedExplode, EXPLODED_VIEW_FACTOR, 0.08);
+
+      let morphWave = MANUAL_MORPH_VALUE;
+      if (AUTO_MORPH_ENABLED) {
+        morphWave = 0.5 + 0.5 * Math.sin(mechanicalTime * 0.55);
+        sliderMorph.value = morphWave;
+        valMorph.textContent = morphWave.toFixed(2);
+
+        const autoModeIdx = Math.floor((mechanicalTime * 0.07) % 4);
+        if (autoModeIdx !== ACTIVE_MORPH_MODE) {
+          ACTIVE_MORPH_MODE = autoModeIdx;
+          modeBtns.forEach((b, idx) => b.classList.toggle('active', idx === ACTIVE_MORPH_MODE));
+          hudStateEl.textContent = MORPH_MODE_NAMES[ACTIVE_MORPH_MODE];
+        }
+      }
+
+      // 1. QUANTUM CORE, DIFFERENTIAL BEVEL SPIDER & 20 IRIS MODULES
+      innerCoreMesh.rotation.y = mechanicalTime * 1.9;
+      innerCoreMesh.rotation.z = mechanicalTime * 1.2;
+      coreLatticeMesh.rotation.y = -mechanicalTime * 1.4;
+      coreLatticeMesh.rotation.x = mechanicalTime * 0.9;
+
+      bevelSpiderGroup.rotation.y = mechanicalTime * 1.1;
+      bevelSpiderGroup.rotation.x = Math.sin(mechanicalTime * 0.7) * 0.45;
+      bevelSpiderGears.forEach((bg) => {
+        bg.mesh.rotation.z = mechanicalTime * 4.5 * bg.dir;
+      });
+
+      glassShellMesh.rotation.y = -mechanicalTime * 0.5;
+
+      coreShieldPlates.forEach((plate) => {
+        const phase = plate.index * GOLDEN_ANGLE;
+        let radialOffset = 0;
+        let tiltAngle = 0;
+
+        if (ACTIVE_MORPH_MODE === 0) {
+          radialOffset = 0.05 * Math.sin(mechanicalTime * 2.0 + phase);
+          tiltAngle = 0.06 * morphWave;
+        } else if (ACTIVE_MORPH_MODE === 1) {
+          radialOffset = 0.58 * morphWave + 0.12 * Math.sin(mechanicalTime * 2.5 + phase);
+          tiltAngle = 0.52 * morphWave;
+        } else if (ACTIVE_MORPH_MODE === 2) {
+          radialOffset = 0.36 + 0.36 * Math.sin(mechanicalTime * 3.0 + plate.normal.y * 4.0);
+          tiltAngle = 0.35 * Math.cos(mechanicalTime * 2.0 + phase);
+        } else {
+          radialOffset = 0.48 * Math.abs(Math.sin(mechanicalTime * 3.5 + phase));
+          tiltAngle = 0.58 * Math.sin(mechanicalTime * 2.5 + phase);
+        }
+
+        const totalRadius = plate.baseDist + radialOffset + smoothedExplode * 1.95;
+        plate.holder.position.copy(plate.normal).multiplyScalar(totalRadius);
+        plate.holder.lookAt(plate.normal.clone().multiplyScalar(totalRadius + 2.0));
+        plate.holder.rotateX(tiltAngle);
+        plate.holder.rotateZ(mechanicalTime * 0.45 * (plate.index % 2 === 0 ? 1 : -1));
+        plate.trimMesh.rotation.z = -mechanicalTime * 2.2;
+      });
+
+      // 2. FOUR NESTED GYROSCOPIC GIMBAL RINGS + BALL BEARINGS & PINIONS
+      gimbalRings[0].ringGroup.rotation.x = mechanicalTime * 0.85;
+      gimbalRings[0].ringGroup.rotation.y = Math.sin(mechanicalTime * 0.5) * 0.55;
+
+      gimbalRings[1].ringGroup.rotation.y = -mechanicalTime * 1.1;
+      gimbalRings[1].ringGroup.rotation.z = Math.cos(mechanicalTime * 0.65) * 0.5;
+
+      gimbalRings[2].ringGroup.rotation.x = -mechanicalTime * 0.78;
+      gimbalRings[2].ringGroup.rotation.z = mechanicalTime * 0.6;
+
+      gimbalRings[3].ringGroup.rotation.y = mechanicalTime * 0.62;
+      gimbalRings[3].ringGroup.rotation.x = Math.sin(mechanicalTime * 0.4) * 0.4;
+
+      gimbalRings.forEach((g, idx) => {
+        const dir = idx % 2 === 0 ? 1 : -1;
+        g.bearingCarrier.rotation.z = mechanicalTime * 1.8 * dir;
+        g.pinions.forEach((p) => {
+          p.rotation.z = -mechanicalTime * 5.2 * dir;
+        });
+      });
+
+      // 3. DUAL MULTI-STAGE EPICYCLIC GEARBOX TOWERS
+      axialTowers.forEach((tower) => {
+        const dir = tower.side;
+        const vortexStretch = ACTIVE_MORPH_MODE === 2 ? morphWave * 1.55 : morphWave * 0.48;
+        tower.towerGroup.position.y = dir * (3.15 + vortexStretch + smoothedExplode * 2.5);
+
+        tower.sunMesh.rotation.z = mechanicalTime * 2.6 * dir;
+        tower.carrierGroup.rotation.y = -mechanicalTime * 0.85 * dir;
+        tower.outerRingMesh.rotation.z = mechanicalTime * 0.4 * dir;
+
+        tower.planets.forEach((pMesh, pIdx) => {
+          pMesh.rotation.z = -mechanicalTime * (pIdx % 2 === 0 ? 5.2 : -7.4) * dir;
+        });
+
+        tower.tappets.forEach((tappet) => {
+          const stroke = Math.sin(mechanicalTime * 6.2 + tappet.phase * 2.0) * (0.3 + 0.26 * morphWave);
+          tappet.group.position.y = tower.side * (0.36 + stroke + smoothedExplode * 0.65);
+          tappet.spring.scale.y = 1.0 - stroke * 0.65;
+        });
+      });
+
+      // 4. TWELVE 3-SEGMENT RADIAL ARMS, WRIST TURBINES & LIVE HYDRAULICS
+      let avgStrokeMm = 0;
+
+      radialArms.forEach((arm) => {
+        const i = arm.index;
+        const phase = (i / RADIAL_ARM_COUNT) * Math.PI * 2;
+        const harmonic = Math.sin(mechanicalTime * 2.2 + phase * 2.0);
+
+        let shoulderAngle = 0;
+        let elbowAngle = 0;
+        let wristAngle = 0;
+        let twistAngle = 0;
+        let radialSlide = 3.85 + smoothedExplode * 2.35;
+        let axialShift = 0;
+
+        if (ACTIVE_MORPH_MODE === 0) {
+          shoulderAngle = 0.92 - 0.24 * morphWave + 0.06 * harmonic;
+          elbowAngle = -1.72 + 0.3 * morphWave - 0.08 * harmonic;
+          wristAngle = -0.65 + 0.25 * harmonic;
+          twistAngle = 0.12 * Math.sin(mechanicalTime + phase);
+          radialSlide -= 0.32 * (1 - morphWave);
+        } else if (ACTIVE_MORPH_MODE === 1) {
+          shoulderAngle = -0.52 * morphWave + 0.22 * harmonic;
+          elbowAngle = -1.2 + 1.42 * morphWave - 0.25 * harmonic;
+          wristAngle = 0.45 * Math.sin(mechanicalTime * 3.0 + phase);
+          twistAngle = 0.42 * morphWave * (i % 2 === 0 ? 1 : -1);
+          radialSlide += 0.58 * morphWave;
+        } else if (ACTIVE_MORPH_MODE === 2) {
+          shoulderAngle = 0.38 * Math.sin(mechanicalTime * 1.8 + phase);
+          elbowAngle = -0.65 + 0.55 * Math.cos(mechanicalTime * 1.8 + phase);
+          wristAngle = 0.6 * Math.sin(mechanicalTime * 2.8 + phase);
+          twistAngle = 0.85 * morphWave + 0.2 * harmonic;
+          axialShift = Math.sin(phase * 2.0 + mechanicalTime * 1.5) * (0.98 * morphWave);
+        } else {
+          const wave = Math.sin(mechanicalTime * 3.6 - phase * 3.0);
+          shoulderAngle = 0.68 * wave;
+          elbowAngle = -0.85 - 0.75 * Math.cos(mechanicalTime * 3.6 - phase * 3.0);
+          wristAngle = 0.75 * wave;
+          twistAngle = 0.5 * wave;
+          radialSlide += 0.38 * (wave * 0.5 + 0.5);
+        }
+
+        arm.manifoldGroup.position.set(radialSlide, axialShift, 0);
+        arm.manifoldGroup.rotation.x = twistAngle;
+
+        arm.shoulderPivot.rotation.z = shoulderAngle;
+        arm.elbowPivot.rotation.z = elbowAngle;
+        arm.wristPivot.rotation.z = wristAngle;
+
+        arm.shoulderGear.rotation.z = -shoulderAngle * 2.6;
+        arm.elbowGear.rotation.z = -elbowAngle * 2.6;
+        arm.wristTurbine.rotation.z = mechanicalTime * 6.5 * (i % 2 === 0 ? 1 : -1);
+
+        const clawPinch = 0.18 + 0.16 * Math.sin(mechanicalTime * 4.0 + phase);
+        arm.upperClaw.rotation.z = clawPinch;
+        arm.lowerClaw.rotation.z = -clawPinch;
+
+        arm.manifoldGroup.updateWorldMatrix(true, true);
+
+        arm.manifoldAnchorA.getWorldPosition(tmpWorldA);
+        arm.upperArmLugA.getWorldPosition(tmpWorldB);
+        arm.manifoldGroup.worldToLocal(tmpWorldA);
+        arm.manifoldGroup.worldToLocal(tmpWorldB);
+        arm.primaryHydraulic.update(tmpWorldA, tmpWorldB);
+        avgStrokeMm += tmpWorldA.distanceTo(tmpWorldB) * 34.0;
+
+        arm.upperArmAnchorB.getWorldPosition(tmpWorldA);
+        arm.forearmLugB.getWorldPosition(tmpWorldB);
+        arm.manifoldGroup.worldToLocal(tmpWorldA);
+        arm.manifoldGroup.worldToLocal(tmpWorldB);
+        arm.secondaryHydraulic.update(tmpWorldA, tmpWorldB);
+      });
+
+      // 5. DOUBLE-HELIX ORBITAL SHROUD VANES
+      orbitalRibsGroup.rotation.y = -mechanicalTime * 0.32;
+      orbitalRibs.forEach((rib) => {
+        const a = rib.angle;
+        const wave = Math.sin(mechanicalTime * 2.4 + a * 4.0);
+        const radius = 5.95 + 0.68 * morphWave + 0.35 * wave + smoothedExplode * 2.8;
+        const yOff = Math.cos(a * 3.0 - mechanicalTime * 1.8) * (1.35 + 0.88 * morphWave);
+
+        rib.ribCarrier.position.set(Math.cos(a) * radius, yOff, Math.sin(a) * radius);
+        rib.ribCarrier.rotation.y = -a + Math.PI * 0.5;
+        rib.ribCarrier.rotation.z = 0.45 * Math.sin(mechanicalTime * 1.8 + a * 2.0);
+        rib.ribMesh.rotation.x = mechanicalTime * 1.2 + a * 3.0;
+        rib.louverVane.rotation.x = Math.sin(mechanicalTime * 3.2 + a * 6.0) * 0.65;
+      });
+
+      // 6. ARTICULATED UMBILICAL CONDUIT SPINES
+      umbilicalSpines.forEach((spine, idx) => {
+        const a = spine.cAngle + mechanicalTime * 0.15 * spine.side;
+        const startR = 1.65;
+        const startY = spine.side * (2.6 + smoothedExplode * 1.8);
+        const endR = 3.7 + 0.4 * morphWave + smoothedExplode * 2.1;
+        const endY = Math.sin(mechanicalTime * 1.8 + idx) * 0.55;
+        const ctrlR = (startR + endR) * 0.68 + 0.85 * morphWave;
+        const ctrlY = startY * 0.55;
+
+        const n = spine.beads.length;
+        for (let b = 0; b < n; b++) {
+          const t = b / (n - 1);
+          const invT = 1 - t;
+          const r = invT * invT * startR + 2 * invT * t * ctrlR + t * t * endR;
+          const y = invT * invT * startY + 2 * invT * t * ctrlY + t * t * endY;
+          const twistA = a + Math.sin(t * Math.PI) * 0.25 * spine.side;
+
+          tmpBeadPos.set(Math.cos(twistA) * r, y, Math.sin(twistA) * r);
+          spine.beads[b].position.copy(tmpBeadPos);
+
+          const tNext = Math.min(1, t + 0.08);
+          const invNext = 1 - tNext;
+          const rNext = invNext * invNext * startR + 2 * invNext * tNext * ctrlR + tNext * tNext * endR;
+          const yNext = invNext * invNext * startY + 2 * invNext * tNext * ctrlY + tNext * tNext * endY;
+          const twistNext = a + Math.sin(tNext * Math.PI) * 0.25 * spine.side;
+          tmpNextBeadPos.set(Math.cos(twistNext) * rNext, yNext, Math.sin(twistNext) * rNext);
+          spine.beads[b].lookAt(tmpNextBeadPos);
+        }
+      });
+
+      outerCalibrationRing.rotation.z = mechanicalTime * 0.08;
+
+      const rpmVal = Math.round(1680 * DRIVE_SPEED_MULTIPLIER * (0.85 + 0.3 * morphWave));
+      hudRpmEl.textContent = rpmVal.toLocaleString();
+      hudStrokeEl.textContent = `${(avgStrokeMm / RADIAL_ARM_COUNT).toFixed(1)} mm`;
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  </script>
+</body>
+</html>

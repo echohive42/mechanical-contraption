@@ -1,0 +1,2768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SOVEREIGN-IX // Heavy Mechanical Star Dreadnought</title>
+  <style>
+    :root {
+      --panel: rgba(12, 19, 33, 0.88);
+      --border: rgba(56, 189, 248, 0.34);
+      --accent: #0ea5e9;
+      --accent-orange: #f97316;
+      --accent-teal: #14b8a6;
+      --accent-gold: #fbbf24;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 42%, #0c192e 0%, #050b16 58%, #010308 100%);
+      font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+      color: var(--text);
+      transition: background 0.35s ease;
+    }
+
+    body.bright-lab {
+      background: radial-gradient(circle at 50% 38%, #1e293b 0%, #0f172a 58%, #020617 100%);
+    }
+
+    #canvas-container {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+    }
+
+    /* Naval Dreadnought Telemetry HUD */
+    .hud-header {
+      position: fixed;
+      top: 18px;
+      left: 22px;
+      z-index: 10;
+      pointer-events: none;
+      border-left: 4px solid var(--accent-orange);
+      padding: 10px 22px 10px 16px;
+      background: rgba(12, 19, 33, 0.86);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 0 8px 8px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
+      border-right: 1px solid rgba(255, 255, 255, 0.14);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.38);
+    }
+
+    .hud-title {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 2.4px;
+      text-transform: uppercase;
+      color: #ffffff;
+    }
+
+    .hud-subtitle {
+      font-size: 10px;
+      letter-spacing: 1.4px;
+      color: #38bdf8;
+      margin-top: 3px;
+    }
+
+    .telemetry-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 9px;
+      font-size: 10.5px;
+      color: #cbd5e1;
+    }
+
+    .telemetry-item span {
+      color: var(--accent-gold);
+      font-weight: 700;
+    }
+
+    /* Camera Inspection Presets Bar */
+    .cam-bar {
+      position: fixed;
+      bottom: 18px;
+      left: 22px;
+      z-index: 10;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      background: rgba(12, 19, 33, 0.86);
+      padding: 8px 10px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+      max-width: calc(100vw - 410px);
+    }
+
+    .cam-btn {
+      background: rgba(30, 41, 59, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      color: #e2e8f0;
+      padding: 6px 10px;
+      font-family: inherit;
+      font-size: 9.5px;
+      font-weight: 600;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.16s ease;
+    }
+
+    .cam-btn:hover {
+      border-color: #38bdf8;
+      color: #ffffff;
+      background: rgba(14, 165, 233, 0.25);
+    }
+
+    /* Right Control Panel */
+    .control-panel {
+      position: fixed;
+      top: 18px;
+      right: 22px;
+      width: 356px;
+      z-index: 10;
+      background: var(--panel);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+      max-height: calc(100vh - 36px);
+      overflow-y: auto;
+    }
+
+    .panel-section-title {
+      font-size: 9.5px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #38bdf8;
+      margin-bottom: 9px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(56, 189, 248, 0.22);
+      padding-bottom: 4px;
+    }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 13px;
+    }
+
+    .mode-btn {
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      color: #e2e8f0;
+      padding: 8px 9px;
+      font-family: inherit;
+      font-size: 9.5px;
+      font-weight: 600;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: all 0.18s ease;
+      text-align: left;
+    }
+
+    .mode-btn:hover {
+      border-color: #38bdf8;
+      color: #ffffff;
+      background: rgba(14, 165, 233, 0.22);
+    }
+
+    .mode-btn.active {
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.38), rgba(14, 165, 233, 0.38));
+      border-color: #fb923c;
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(249, 115, 22, 0.28);
+    }
+
+    .control-row {
+      margin-bottom: 10px;
+    }
+
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #e2e8f0;
+      margin-bottom: 4px;
+    }
+
+    .control-val {
+      color: #38bdf8;
+      font-weight: 700;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 5px;
+      background: rgba(148, 163, 184, 0.3);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #f97316;
+      border: 2px solid #ffffff;
+      cursor: pointer;
+    }
+
+    .toggle-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .toggle-btn {
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.32);
+      color: #cbd5e1;
+      padding: 7px 6px;
+      font-family: inherit;
+      font-size: 9.5px;
+      font-weight: 600;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: all 0.2s;
+    }
+
+    .toggle-btn.active {
+      border-color: #14b8a6;
+      color: #ccfbf1;
+      background: rgba(20, 184, 166, 0.26);
+    }
+
+    .ratio-legend {
+      margin-top: 12px;
+      padding: 8px 10px;
+      background: rgba(2, 6, 23, 0.58);
+      border-radius: 5px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      font-size: 9.2px;
+      line-height: 1.5;
+      color: #94a3b8;
+    }
+
+    .ratio-legend strong {
+      color: #e2e8f0;
+    }
+  </style>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="canvas-container"></div>
+
+  <!-- Top-Left Dreadnought Telemetry HUD -->
+  <div class="hud-header">
+    <div class="hud-title">UNSC / SOVEREIGN-IX // 4.2KM KINETIC CARRIER DREADNOUGHT</div>
+    <div class="hud-subtitle">MOTHERSHIP FLEET CARRIER, 320 AUTONOMOUS PATROL STRIKE CRAFT, 8 CIWS SPONSONS &amp; 6 PLANETARY THRUSTERS</div>
+    <div class="telemetry-bar">
+      <div class="telemetry-item">SWARM FLEET: <span id="hud-swarm">320 ACTIVE</span></div>
+      <div class="telemetry-item">SORTIE OPS: <span id="hud-sortie">LAUNCH / PATROL / DOCK</span></div>
+      <div class="telemetry-item">WING SWEEP: <span id="hud-sweep">32.4°</span></div>
+      <div class="telemetry-item">SPINAL RAILGUN: <span id="hud-railgun">CHARGED</span></div>
+      <div class="telemetry-item">PARTS: <span>2,400+ ACTIVE</span></div>
+    </div>
+  </div>
+
+  <!-- Camera Close-Up Inspection Presets -->
+  <div class="cam-bar">
+    <button class="cam-btn" data-cam="overview">3/4 MOTHERSHIP &amp; SWARM</button>
+    <button class="cam-btn" data-cam="hangar">HANGAR LAUNCH &amp; DOCKING</button>
+    <button class="cam-btn" data-cam="prow">SPEARHEAD PROW &amp; RAILGUN</button>
+    <button class="cam-btn" data-cam="bridge">COMMAND CITADEL &amp; TURRETS</button>
+    <button class="cam-btn" data-cam="wings">SWEEP WINGS &amp; CIWS</button>
+    <button class="cam-btn" data-cam="reactor">VENTRAL SINGULARITY CORE</button>
+    <button class="cam-btn" data-cam="engines">6 STERN VECTOR NOZZLES</button>
+  </div>
+
+  <!-- Interactive Control Deck -->
+  <div class="control-panel">
+    <div class="panel-section-title">
+      <span>TACTICAL TRANSFORMATION MODE</span>
+      <span id="cycle-indicator">AUTO-TRANSFORM</span>
+    </div>
+
+    <div class="mode-grid">
+      <button class="mode-btn" data-mode="0">01 // SLEEK CRUISE</button>
+      <button class="mode-btn active" data-mode="1">02 // SIEGE BROADSIDE</button>
+      <button class="mode-btn" data-mode="2">03 // SPINAL CANNON</button>
+      <button class="mode-btn" data-mode="3">04 // FULL OVERDRIVE</button>
+    </div>
+
+    <div class="panel-section-title">
+      <span>SHIP MECHANICAL ACTUATION</span>
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span>MECHANICAL DRIVE &amp; TURBINE SPEED</span>
+        <span class="control-val" id="val-speed">1.00x</span>
+      </div>
+      <input type="range" id="slider-speed" min="0" max="2.5" step="0.05" value="1.0" />
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span>COMBAT MORPH &amp; ARMOR DEPLOYMENT</span>
+        <span class="control-val" id="val-morph">0.65</span>
+      </div>
+      <input type="range" id="slider-morph" min="0" max="1" step="0.01" value="0.65" />
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span>HULL ARMOR CUTAWAY / EXPLODE</span>
+        <span class="control-val" id="val-explode">0%</span>
+      </div>
+      <input type="range" id="slider-explode" min="0" max="1" step="0.01" value="0" />
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span>PATROL SWARM SORTIE SPEED (320 SHIPS)</span>
+        <span class="control-val" id="val-swarm-speed">1.00x</span>
+      </div>
+      <input type="range" id="slider-swarm-speed" min="0.1" max="2.5" step="0.05" value="1.0" />
+    </div>
+
+    <div class="panel-section-title">
+      <span>SHADOW DEPTH &amp; GLOBAL ILLUMINATION</span>
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span>SHADOW DEPTH &amp; CONTRAST</span>
+        <span class="control-val" id="val-shadow">86%</span>
+      </div>
+      <input type="range" id="slider-shadow" min="0.2" max="1.0" step="0.02" value="0.86" />
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span>GI RADIANCE &amp; EXPOSURE</span>
+        <span class="control-val" id="val-exposure">1.25</span>
+      </div>
+      <input type="range" id="slider-exposure" min="0.7" max="2.1" step="0.05" value="1.25" />
+    </div>
+
+    <div class="toggle-row">
+      <button class="toggle-btn active" id="btn-automorph">AUTO-MORPH</button>
+      <button class="toggle-btn active" id="btn-orbit">ORBIT CAM</button>
+      <button class="toggle-btn" id="btn-brightbg">NEBULA / BRIGHT</button>
+      <button class="toggle-btn" id="btn-wireframe">X-RAY CAD</button>
+    </div>
+
+    <div class="ratio-legend">
+      <strong>MOTHERSHIP &amp; 320-SHIP SWARM ARCHITECTURE:</strong><br />
+      • <strong>320 Autonomous Patrol Craft:</strong> Launch from 6 Illuminated Hangar Bays, Fly 3D Screening Orbits &amp; Return to Dock<br />
+      • <strong>Sculpted Wedge Hull &amp; Prow:</strong> 32 Articulated Glacis Plates + Rack-and-Pinion Bow Mandibles &amp; 18-Coil Railgun<br />
+      • <strong>4 Triple Turrets &amp; 8 CIWS Sponsons:</strong> 32T:16T Barbettes + 8 Rotary Gattling Point-Defense Batteries + 20 VLS Silos<br />
+      • <strong>Ventral Singularity Reactor:</strong> Dual 48T Gimbal Rings + 6 Radial Cryo-Pistons + 6 Planetary Vector Thrusters
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    // ============================================================================
+    // ALL-CAPS CONFIGURATION & USER INPUT STATE VARIABLES
+    // ============================================================================
+    const PATROL_SWARM_COUNT = 320;        // 320 tiny autonomous strike craft launching, patrolling & docking!
+    const HULL_GLACIS_PAIR_COUNT = 8;      // 32 sculpted articulated dorsal/ventral wedge hull plates
+    const SPINAL_ACCELERATOR_COILS = 18;   // 18 electromagnetic railgun rings along the bow trench
+    const VLS_MISSILE_CELL_COUNT = 20;     // 20 vertical launch missile silos with hinged hatches
+    const BROADSIDE_CIWS_COUNT = 8;        // 8 rotary 6-barrel point-defense Gattling sponsons (4 port, 4 stbd)
+    const REACTOR_COOLANT_PISTONS = 6;     // 6 radial reciprocating cryo-pistons around the ventral singularity core
+    const DORSAL_RADIATOR_FIN_COUNT = 12;  // 12 folding cryo-radiator spine vanes
+    const MAIN_ENGINE_COUNT = 6;           // 2 primary central + 4 outboard booster propulsion units
+    const NOZZLE_PETAL_COUNT = 16;         // 16 turkey-feather vectoring petals per main engine
+    const DEEP_SPACE_STAR_COUNT = 7500;    // 7,500 multi-spectral stars & nebula dust particles in deep space
+
+    let DRIVE_SPEED_MULTIPLIER = 1.0;
+    let SWARM_SORTIE_SPEED = 1.0;
+    let MANUAL_MORPH_VALUE = 0.65;
+    let EXPLODED_VIEW_FACTOR = 0.0;
+    let SHADOW_CONTRAST_LEVEL = 0.86;
+    let GI_EXPOSURE_LEVEL = 1.25;
+
+    let ACTIVE_SHIP_MODE = 1; // 0: Sleek Cruise, 1: Siege Broadside, 2: Spinal Cannon, 3: Full Overdrive
+    let AUTO_MORPH_ENABLED = true;
+    let AUTO_ORBIT_ENABLED = true;
+    let DAYLIGHT_DOCK_ENABLED = false;
+    let WIREFRAME_XRAY_ENABLED = false;
+
+    // ============================================================================
+    // SCENE, CAMERA & HIGH-CLARITY 4K SHADOW RENDERER
+    // ============================================================================
+    const container = document.getElementById('canvas-container');
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      powerPreference: 'high-performance'
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = GI_EXPOSURE_LEVEL;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    container.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(36, window.innerWidth / window.innerHeight, 0.1, 350);
+    camera.position.set(22.5, 11.8, 21.0);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.maxDistance = 85;
+    controls.minDistance = 2.5;
+    controls.autoRotate = AUTO_ORBIT_ENABLED;
+    controls.autoRotateSpeed = 0.32;
+
+    let cameraTransition = null;
+
+    // ============================================================================
+    // HIGH-CONTRAST STUDIO IBL & NAVAL CAPITAL-SHIP HULL TEXTURES
+    // ============================================================================
+    function createStudioIBL(rendererInstance) {
+      const envScene = new THREE.Scene();
+      const dome = new THREE.Mesh(
+        new THREE.SphereGeometry(45, 32, 24),
+        new THREE.MeshBasicMaterial({ color: 0x0f172a, side: THREE.BackSide })
+      );
+      envScene.add(dome);
+
+      const strips = [
+        { pos: [18, 28, 18], size: [26, 26], color: 0xffffff },
+        { pos: [28, 6, -12], size: [22, 14], color: 0xfed7aa },
+        { pos: [-26, 14, -18], size: [22, 16], color: 0x7dd3fc },
+        { pos: [-14, -4, 28], size: [20, 14], color: 0x5eead4 },
+        { pos: [0, -26, 0], size: [40, 40], color: 0x475569 }
+      ];
+      strips.forEach((s) => {
+        const m = new THREE.Mesh(
+          new THREE.PlaneGeometry(s.size[0], s.size[1]),
+          new THREE.MeshBasicMaterial({ color: s.color, side: THREE.DoubleSide })
+        );
+        m.position.set(...s.pos);
+        m.lookAt(0, 0, 0);
+        envScene.add(m);
+      });
+
+      const pmrem = new THREE.PMREMGenerator(rendererInstance);
+      const tex = pmrem.fromScene(envScene, 0.035).texture;
+      pmrem.dispose();
+      return tex;
+    }
+
+    scene.environment = createStudioIBL(renderer);
+    scene.environmentIntensity = 0.42;
+
+    function createNavalHullTextures() {
+      const hullCanvas = document.createElement('canvas');
+      hullCanvas.width = 1024;
+      hullCanvas.height = 1024;
+      const hCtx = hullCanvas.getContext('2d');
+
+      hCtx.fillStyle = '#d6dade';
+      hCtx.fillRect(0, 0, 1024, 1024);
+
+      // Anisotropic rolled-titanium armor grain
+      for (let i = 0; i < 6000; i++) {
+        const y = Math.random() * 1024;
+        const v = 190 + Math.floor(Math.random() * 42);
+        hCtx.fillStyle = `rgb(${v},${v},${v})`;
+        hCtx.fillRect(0, y, 1024, 1);
+      }
+
+      // Aztec / Capital-ship interlocking hull plating grid
+      hCtx.fillStyle = '#c4c9cf';
+      for (let y = 0; y < 1024; y += 128) {
+        for (let x = 0; x < 1024; x += 256) {
+          if ((x + y) % 256 === 0) {
+            hCtx.fillRect(x + 12, y + 12, 110, 52);
+          }
+        }
+      }
+
+      // Deep recessed panel trenches & rivet lines
+      hCtx.strokeStyle = '#334155';
+      hCtx.lineWidth = 3;
+      for (let x = 0; x <= 1024; x += 128) {
+        hCtx.beginPath();
+        hCtx.moveTo(x, 0);
+        hCtx.lineTo(x, 1024);
+        hCtx.stroke();
+      }
+      for (let y = 0; y <= 1024; y += 64) {
+        hCtx.beginPath();
+        hCtx.moveTo(0, y);
+        hCtx.lineTo(1024, y);
+        hCtx.stroke();
+      }
+
+      const hullTex = new THREE.CanvasTexture(hullCanvas);
+      hullTex.wrapS = THREE.RepeatWrapping;
+      hullTex.wrapT = THREE.RepeatWrapping;
+      hullTex.repeat.set(3, 3);
+
+      // Crew Deck Porthole & Observation Window Strip Texture
+      const winCanvas = document.createElement('canvas');
+      winCanvas.width = 512;
+      winCanvas.height = 256;
+      const wCtx = winCanvas.getContext('2d');
+      wCtx.fillStyle = '#0f172a';
+      wCtx.fillRect(0, 0, 512, 256);
+
+      for (let r = 10; r < 256; r += 14) {
+        for (let c = 6; c < 512; c += 9) {
+          if (Math.random() > 0.25) {
+            wCtx.fillStyle = Math.random() > 0.22 ? '#fef08a' : '#38bdf8';
+            wCtx.fillRect(c, r, 5, 3);
+          }
+        }
+      }
+      const winTex = new THREE.CanvasTexture(winCanvas);
+      winTex.wrapS = THREE.RepeatWrapping;
+      winTex.wrapT = THREE.RepeatWrapping;
+      winTex.repeat.set(3, 1);
+
+      return { hullTex, winTex };
+    }
+
+    const { hullTex, winTex } = createNavalHullTextures();
+
+    // ============================================================================
+    // POLYCHROME NAVAL STAR-DREADNOUGHT MATERIALS (TUNED FOR 4K SHADOWS)
+    // ============================================================================
+    const MATERIALS = {
+      navalWhiteArmor: new THREE.MeshPhysicalMaterial({
+        color: 0xf1f5f9,
+        map: hullTex,
+        metalness: 0.16,
+        roughness: 0.3,
+        clearcoat: 0.5,
+        clearcoatRoughness: 0.22,
+        bumpMap: hullTex,
+        bumpScale: 0.018
+      }),
+      hullSlateGrey: new THREE.MeshPhysicalMaterial({
+        color: 0x64748b,
+        map: hullTex,
+        metalness: 0.35,
+        roughness: 0.32,
+        clearcoat: 0.35,
+        bumpMap: hullTex,
+        bumpScale: 0.018
+      }),
+      darkFrameGunmetal: new THREE.MeshStandardMaterial({
+        color: 0x334155,
+        map: hullTex,
+        metalness: 0.45,
+        roughness: 0.36,
+        bumpMap: hullTex,
+        bumpScale: 0.02
+      }),
+      aerospaceOrange: new THREE.MeshPhysicalMaterial({
+        color: 0xf97316,
+        map: hullTex,
+        metalness: 0.28,
+        roughness: 0.3,
+        clearcoat: 0.55,
+        bumpMap: hullTex,
+        bumpScale: 0.014
+      }),
+      cobaltArmor: new THREE.MeshPhysicalMaterial({
+        color: 0x1d4ed8,
+        map: hullTex,
+        metalness: 0.38,
+        roughness: 0.28,
+        clearcoat: 0.55,
+        bumpMap: hullTex,
+        bumpScale: 0.015
+      }),
+      iridescentTeal: new THREE.MeshPhysicalMaterial({
+        color: 0x0d9488,
+        map: hullTex,
+        metalness: 0.38,
+        roughness: 0.26,
+        iridescence: 0.72,
+        iridescenceIOR: 1.4,
+        clearcoat: 0.5,
+        bumpMap: hullTex,
+        bumpScale: 0.014
+      }),
+      crimsonActuator: new THREE.MeshPhysicalMaterial({
+        color: 0xe11d48,
+        map: hullTex,
+        metalness: 0.34,
+        roughness: 0.28,
+        clearcoat: 0.55
+      }),
+      champagneGold: new THREE.MeshStandardMaterial({
+        color: 0xfbbf24,
+        map: hullTex,
+        metalness: 0.56,
+        roughness: 0.25,
+        bumpMap: hullTex,
+        bumpScale: 0.012
+      }),
+      berylliumCopper: new THREE.MeshStandardMaterial({
+        color: 0xd97706,
+        map: hullTex,
+        metalness: 0.54,
+        roughness: 0.27,
+        bumpMap: hullTex,
+        bumpScale: 0.012
+      }),
+      brushedSteel: new THREE.MeshStandardMaterial({
+        color: 0xe2e8f0,
+        map: hullTex,
+        metalness: 0.46,
+        roughness: 0.26,
+        bumpMap: hullTex,
+        bumpScale: 0.014
+      }),
+      mirrorChrome: new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        metalness: 0.72,
+        roughness: 0.14
+      }),
+      crewWindows: new THREE.MeshStandardMaterial({
+        color: 0x0f172a,
+        emissive: 0xffffff,
+        emissiveMap: winTex,
+        emissiveIntensity: 0.95,
+        roughness: 0.25
+      }),
+      cyanPlasma: new THREE.MeshStandardMaterial({
+        color: 0x38bdf8,
+        emissive: 0x0284c7,
+        emissiveIntensity: 0.95,
+        roughness: 0.15
+      }),
+      amberAfterburner: new THREE.MeshStandardMaterial({
+        color: 0xfbbf24,
+        emissive: 0xea580c,
+        emissiveIntensity: 0.95,
+        roughness: 0.15
+      })
+    };
+
+    // ============================================================================
+    // PRECISION INVOLUTE GEARS, RACKS, SCULPTED HULL PLATES & AIRFOIL BUILDERS
+    // ============================================================================
+    function createExactSpurGearGeometry(module, teeth, thickness, boreRadius = 0.15, spoked = true, bevel = 0.014) {
+      const pitchRadius = (module * teeth) * 0.5;
+      const addendum = module * 0.95;
+      const dedendum = module * 1.15;
+      const rOuter = pitchRadius + addendum;
+      const rRoot = Math.max(boreRadius + 0.05, pitchRadius - dedendum);
+
+      const shape = new THREE.Shape();
+      const step = (Math.PI * 2) / teeth;
+
+      for (let i = 0; i < teeth; i++) {
+        const c = i * step;
+        const a0 = c - step * 0.5;
+        const a1 = c - step * 0.34;
+        const a2 = c - step * 0.24;
+        const a3 = c - step * 0.13;
+        const a4 = c + step * 0.13;
+        const a5 = c + step * 0.24;
+        const a6 = c + step * 0.34;
+
+        if (i === 0) {
+          shape.moveTo(Math.cos(a0) * rRoot, Math.sin(a0) * rRoot);
+        } else {
+          shape.lineTo(Math.cos(a0) * rRoot, Math.sin(a0) * rRoot);
+        }
+        shape.lineTo(Math.cos(a1) * rRoot, Math.sin(a1) * rRoot);
+        shape.lineTo(Math.cos(a2) * pitchRadius, Math.sin(a2) * pitchRadius);
+        shape.lineTo(Math.cos(a3) * rOuter, Math.sin(a3) * rOuter);
+        shape.lineTo(Math.cos(a4) * rOuter, Math.sin(a4) * rOuter);
+        shape.lineTo(Math.cos(a5) * pitchRadius, Math.sin(a5) * pitchRadius);
+        shape.lineTo(Math.cos(a6) * rRoot, Math.sin(a6) * rRoot);
+      }
+      shape.closePath();
+
+      if (boreRadius > 0.02) {
+        const hole = new THREE.Path();
+        hole.absarc(0, 0, boreRadius, 0, Math.PI * 2, false);
+        shape.holes.push(hole);
+      }
+
+      const webSpan = rRoot - boreRadius;
+      if (spoked && webSpan > 0.38) {
+        const midR = (rRoot + boreRadius) * 0.5;
+        const holeR = webSpan * 0.27;
+        for (let k = 0; k < 6; k++) {
+          const ang = (k / 6) * Math.PI * 2;
+          const h = new THREE.Path();
+          h.absarc(Math.cos(ang) * midR, Math.sin(ang) * midR, holeR, 0, Math.PI * 2, false);
+          shape.holes.push(h);
+        }
+      }
+
+      const geom = new THREE.ExtrudeGeometry(shape, {
+        steps: 1,
+        depth: thickness,
+        bevelEnabled: true,
+        bevelThickness: bevel,
+        bevelSize: bevel,
+        bevelSegments: 2
+      });
+      geom.center();
+      return geom;
+    }
+
+    function createExactInternalRingGearGeometry(module, teeth, outerRimRadius, thickness, bevel = 0.014) {
+      const pitchRadius = (module * teeth) * 0.5;
+      const rValley = pitchRadius + module * 1.1;
+      const rTip = pitchRadius - module * 0.92;
+
+      const shape = new THREE.Shape();
+      shape.absarc(0, 0, outerRimRadius, 0, Math.PI * 2, false);
+
+      const innerPath = new THREE.Path();
+      const step = (Math.PI * 2) / teeth;
+
+      for (let i = 0; i < teeth; i++) {
+        const vAng = i * step;
+        const aV1 = vAng - step * 0.14;
+        const aV2 = vAng + step * 0.14;
+        const aP1 = vAng + step * 0.25;
+        const aT1 = vAng + step * 0.36;
+        const aT2 = vAng + step * 0.64;
+        const aP2 = vAng + step * 0.75;
+
+        if (i === 0) {
+          innerPath.moveTo(Math.cos(aV1) * rValley, Math.sin(aV1) * rValley);
+        } else {
+          innerPath.lineTo(Math.cos(aV1) * rValley, Math.sin(aV1) * rValley);
+        }
+        innerPath.lineTo(Math.cos(aV2) * rValley, Math.sin(aV2) * rValley);
+        innerPath.lineTo(Math.cos(aP1) * pitchRadius, Math.sin(aP1) * pitchRadius);
+        innerPath.lineTo(Math.cos(aT1) * rTip, Math.sin(aT1) * rTip);
+        innerPath.lineTo(Math.cos(aT2) * rTip, Math.sin(aT2) * rTip);
+        innerPath.lineTo(Math.cos(aP2) * pitchRadius, Math.sin(aP2) * pitchRadius);
+      }
+      innerPath.closePath();
+      shape.holes.push(innerPath);
+
+      const geom = new THREE.ExtrudeGeometry(shape, {
+        steps: 1,
+        depth: thickness,
+        bevelEnabled: true,
+        bevelThickness: bevel,
+        bevelSize: bevel,
+        bevelSegments: 2
+      });
+      geom.center();
+      return geom;
+    }
+
+    function createExactLinearRackGeometry(module, numTeeth, thickness, baseHeight = 0.24) {
+      const pitch = Math.PI * module;
+      const totalLen = numTeeth * pitch;
+      const startX = -totalLen * 0.5;
+      const yTip = module * 0.92;
+      const yRoot = -module * 1.12;
+
+      const shape = new THREE.Shape();
+      shape.moveTo(startX, -baseHeight);
+      shape.lineTo(startX, yRoot);
+
+      for (let i = 0; i < numTeeth; i++) {
+        const x0 = startX + i * pitch;
+        shape.lineTo(x0 + pitch * 0.16, yRoot);
+        shape.lineTo(x0 + pitch * 0.36, yTip);
+        shape.lineTo(x0 + pitch * 0.64, yTip);
+        shape.lineTo(x0 + pitch * 0.84, yRoot);
+        shape.lineTo(x0 + pitch, yRoot);
+      }
+      shape.lineTo(startX + totalLen, -baseHeight);
+      shape.closePath();
+
+      const geom = new THREE.ExtrudeGeometry(shape, {
+        steps: 1,
+        depth: thickness,
+        bevelEnabled: true,
+        bevelThickness: 0.01,
+        bevelSize: 0.01,
+        bevelSegments: 2
+      });
+      geom.translate(0, 0, -thickness * 0.5);
+      return geom;
+    }
+
+    /**
+     * Builds a sculpted, chamfered trapezoidal hull armor glacis plate with
+     * inspection cutouts so the ship has a sleek, unmistakable Star-Destroyer /
+     * Battlecruiser wedge silhouette while exposing internal machinery.
+     */
+    function createSculptedGlacisPlateGeometry(length, aftWidth, fwdWidth, thickness = 0.16) {
+      const shape = new THREE.Shape();
+      const hL = length * 0.5;
+      shape.moveTo(-hL, 0.12);
+      shape.lineTo(hL, 0.12);
+      shape.lineTo(hL - 0.15, fwdWidth);
+      shape.lineTo(-hL + 0.15, aftWidth);
+      shape.closePath();
+
+      // Internal recessed maintenance window slot so gears/pipes underneath stay visible
+      if (aftWidth > 1.1 && length > 1.8) {
+        const slot = new THREE.Path();
+        const midW = (aftWidth + fwdWidth) * 0.42;
+        slot.moveTo(-hL * 0.48, midW * 0.55);
+        slot.lineTo(hL * 0.48, midW * 0.55);
+        slot.lineTo(hL * 0.42, midW * 0.88);
+        slot.lineTo(-hL * 0.42, midW * 0.88);
+        slot.closePath();
+        shape.holes.push(slot);
+      }
+
+      const geom = new THREE.ExtrudeGeometry(shape, {
+        steps: 1,
+        depth: thickness,
+        bevelEnabled: true,
+        bevelThickness: 0.035,
+        bevelSize: 0.035,
+        bevelSegments: 2
+      });
+      geom.rotateX(Math.PI * 0.5);
+      return geom;
+    }
+
+    /**
+     * Builds a sculpted Forward-Swept / Variable-Geometry Strike Wing Airfoil
+     * with structural lightening bays for exposing internal wing gear trains.
+     */
+    function createSweptStrikeWingGeometry(span = 6.8, rootChord = 3.6, tipChord = 1.4, thickness = 0.26) {
+      const shape = new THREE.Shape();
+      shape.moveTo(0, -rootChord * 0.45);
+      shape.lineTo(span * 0.35, -rootChord * 0.58);
+      shape.lineTo(span, -tipChord * 0.35);
+      shape.lineTo(span * 0.92, tipChord * 0.65);
+      shape.lineTo(span * 0.28, rootChord * 0.52);
+      shape.lineTo(0, rootChord * 0.38);
+      shape.closePath();
+
+      // Cutout machinery bay in the wing skin
+      const bay = new THREE.Path();
+      bay.moveTo(span * 0.18, -rootChord * 0.22);
+      bay.lineTo(span * 0.62, -tipChord * 0.18);
+      bay.lineTo(span * 0.58, tipChord * 0.24);
+      bay.lineTo(span * 0.18, rootChord * 0.18);
+      bay.closePath();
+      shape.holes.push(bay);
+
+      const geom = new THREE.ExtrudeGeometry(shape, {
+        steps: 1,
+        depth: thickness,
+        bevelEnabled: true,
+        bevelThickness: 0.04,
+        bevelSize: 0.04,
+        bevelSegments: 2
+      });
+      geom.translate(0, 0, -thickness * 0.5);
+      return geom;
+    }
+
+    function createHelicalSpringGeometry(radius = 0.09, turns = 6, height = 0.75, wireR = 0.016) {
+      const pts = [];
+      const segs = turns * 16;
+      for (let i = 0; i <= segs; i++) {
+        const t = i / segs;
+        const a = t * turns * Math.PI * 2;
+        pts.push(new THREE.Vector3(Math.cos(a) * radius, (t - 0.5) * height, Math.sin(a) * radius));
+      }
+      return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), segs, wireR, 8, false);
+    }
+
+    const sharedSpringGeo = createHelicalSpringGeometry(0.08, 6, 0.7, 0.015);
+    sharedSpringGeo.rotateX(Math.PI * 0.5);
+
+    function createHydraulicActuator(cylRadius = 0.075, rodRadius = 0.042, maxLen = 2.0, mat = MATERIALS.aerospaceOrange) {
+      const root = new THREE.Group();
+      const housing = new THREE.Group();
+      const barrelGeo = new THREE.CylinderGeometry(cylRadius, cylRadius, maxLen * 0.54, 14);
+      barrelGeo.rotateX(Math.PI * 0.5);
+      barrelGeo.translate(0, 0, maxLen * 0.27);
+      const barrel = new THREE.Mesh(barrelGeo, mat);
+
+      const collarGeo = new THREE.CylinderGeometry(cylRadius * 1.35, cylRadius * 1.35, 0.11, 14);
+      collarGeo.rotateX(Math.PI * 0.5);
+      collarGeo.translate(0, 0, maxLen * 0.53);
+      const collar = new THREE.Mesh(collarGeo, MATERIALS.champagneGold);
+
+      const spring = new THREE.Mesh(sharedSpringGeo, MATERIALS.berylliumCopper);
+      spring.position.z = maxLen * 0.56;
+      housing.add(barrel, collar, spring);
+
+      const rodGroup = new THREE.Group();
+      const rodGeo = new THREE.CylinderGeometry(rodRadius, rodRadius, maxLen * 0.74, 12);
+      rodGeo.rotateX(Math.PI * 0.5);
+      rodGeo.translate(0, 0, maxLen * 0.37);
+      const rod = new THREE.Mesh(rodGeo, MATERIALS.mirrorChrome);
+      rodGroup.add(rod);
+
+      root.add(housing, rodGroup);
+      return {
+        root,
+        update(ptA, ptB) {
+          housing.position.copy(ptA);
+          housing.lookAt(ptB);
+          rodGroup.position.copy(ptB);
+          rodGroup.lookAt(ptA);
+          const dist = ptA.distanceTo(ptB);
+          const span = Math.max(0.16, dist - maxLen * 0.48);
+          spring.position.z = maxLen * 0.5 + span * 0.45;
+          spring.scale.set(1, 1, span / 0.7);
+        }
+      };
+    }
+
+    // ============================================================================
+    // MASTER STAR-DREADNOUGHT HIERARCHY (BOW = +X [+19], STERN = -X [-17])
+    // ============================================================================
+    const shipRoot = new THREE.Group();
+    scene.add(shipRoot);
+
+    //Hull Width Taper Function: Returns half-beam Z width at any longitudinal station X in [-14, +16]
+    function getHullHalfBeamAtX(x) {
+      if (x >= 4.0) {
+        // Sleek spearhead taper from midship shoulder (X=4, W=4.2) to bow tip (X=16.5, W=0.65)
+        const t = Math.min(1, (x - 4.0) / 12.5);
+        return 4.2 * (1 - t * 0.84);
+      } else {
+        // Broad armored midship & aft engine flare (X=-13 to +4)
+        const t = Math.max(0, (4.0 - x) / 17.0);
+        return 4.2 - Math.sin(t * Math.PI) * 0.55;
+      }
+    }
+
+    function getHullHalfHeightAtX(x) {
+      if (x >= 4.0) {
+        const t = Math.min(1, (x - 4.0) / 12.5);
+        return 1.55 * (1 - t * 0.68);
+      }
+      return 1.55 + Math.max(0, (-x - 2.0) * 0.06);
+    }
+
+    // ============================================================================
+    // 1. INTERNAL GREEBLED ENGINEERING CORE, KEEL SPINE & CREW DECK CITADEL
+    // ============================================================================
+    const internalChassisGroup = new THREE.Group();
+    shipRoot.add(internalChassisGroup);
+
+    // Heavy Armored Central Keel Spine & Longitudinal Illuminated Crew Trench
+    const centralSpineBeam = new THREE.Mesh(
+      new THREE.BoxGeometry(28.5, 1.35, 2.2),
+      MATERIALS.darkFrameGunmetal
+    );
+    centralSpineBeam.position.set(0.5, 0, 0);
+    internalChassisGroup.add(centralSpineBeam);
+
+    // Lateral Illuminated Crew Quarters & Technical Trench Strips (visible along the chine gap!)
+    for (let zSide of [-1, 1]) {
+      const chineTrench = new THREE.Mesh(
+        new THREE.BoxGeometry(22.0, 0.62, 0.45),
+        MATERIALS.crewWindows
+      );
+      chineTrench.position.set(-0.5, 0, zSide * 2.45);
+      chineTrench.rotation.y = -zSide * 0.085;
+      internalChassisGroup.add(chineTrench);
+    }
+
+    // Internal Contragravity Centrifuge Rings recessed inside the Midship Engineering Bay (X = -1.2 & +2.2)
+    // Driven by 56-Tooth Hub Gears meshing with 14-Tooth Hull Pinions (4:1 ratio)
+    const INT_CENT_MOD = 0.085;
+    const intCentGearGeo = createExactSpurGearGeometry(INT_CENT_MOD, 56, 0.28, 1.95, false);
+    const intCentPinionGeo = createExactSpurGearGeometry(INT_CENT_MOD, 14, 0.3, 0.14, false);
+    const R_INT_CENT = (INT_CENT_MOD * 56) * 0.5;   // 2.38
+    const R_INT_PIN = (INT_CENT_MOD * 14) * 0.5;    // 0.595
+
+    const internalCentrifuges = [];
+    [-1.2, 2.2].forEach((xPos, idx) => {
+      const bayGroup = new THREE.Group();
+      bayGroup.position.set(xPos, 0, 0);
+      internalChassisGroup.add(bayGroup);
+
+      const wheel = new THREE.Group();
+      wheel.rotation.x = Math.PI * 0.5; // Horizontal gyro-gravity ring in XZ plane!
+      bayGroup.add(wheel);
+
+      const gearRim = new THREE.Mesh(
+        intCentGearGeo,
+        idx === 0 ? MATERIALS.champagneGold : MATERIALS.aerospaceOrange
+      );
+      wheel.add(gearRim);
+
+      const torusCore = new THREE.Mesh(
+        new THREE.TorusGeometry(1.75, 0.22, 14, 48),
+        MATERIALS.iridescentTeal
+      );
+      wheel.add(torusCore);
+
+      // 4 Meshing 14-Tooth Drive Pinions around the Centrifuge Ring
+      const pinions = [];
+      for (let p = 0; p < 4; p++) {
+        const ang = (p / 4) * Math.PI * 2 + Math.PI * 0.25;
+        const pHolder = new THREE.Group();
+        pHolder.position.set(
+          Math.cos(ang) * (R_INT_CENT + R_INT_PIN),
+          0,
+          -Math.sin(ang) * (R_INT_CENT + R_INT_PIN)
+        );
+        bayGroup.add(pHolder);
+
+        const pMesh = new THREE.Mesh(intCentPinionGeo, MATERIALS.crimsonActuator);
+        pMesh.rotation.x = -Math.PI * 0.5;
+        pHolder.add(pMesh);
+        pinions.push({ mesh: pMesh, ang });
+      }
+
+      internalCentrifuges.push({ wheel, pinions, dir: idx === 0 ? 1 : -1 });
+    });
+
+    // ============================================================================
+    // 2. SIXTEEN SCULPTED ARTICULATED WEDGE GLACIS ARMOR PLATES ON 4-BAR LINKAGES
+    //    (Gives the ship its unmistakable sleek Star-Destroyer / Battlecruiser hull!)
+    // ============================================================================
+    const articulatedHullPlates = [];
+
+    for (let i = 0; i < HULL_GLACIS_PAIR_COUNT; i++) {
+      // Span from X = -9.5 (aft) to X = +12.5 (forward prow)
+      const segLen = 2.65;
+      const xCenter = -8.8 + i * 2.85;
+      const xAft = xCenter - segLen * 0.5;
+      const xFwd = xCenter + segLen * 0.5;
+
+      const wAft = getHullHalfBeamAtX(xAft);
+      const wFwd = getHullHalfBeamAtX(xFwd);
+      const hCenter = getHullHalfHeightAtX(xCenter);
+
+      const plateGeo = createSculptedGlacisPlateGeometry(segLen, wAft, wFwd, 0.18);
+
+      // Build both Port (+Z) and Starboard (-Z) Dorsal & Ventral Glacis Plates
+      for (let zSide of [-1, 1]) {
+        for (let ySide of [-1, 1]) {
+          const mountGroup = new THREE.Group();
+          mountGroup.position.set(xCenter, ySide * (hCenter * 0.65), zSide * 0.52);
+          shipRoot.add(mountGroup);
+
+          const plateHolder = new THREE.Group();
+          mountGroup.add(plateHolder);
+
+          const mat =
+            i === 2 || i === 5
+              ? MATERIALS.aerospaceOrange
+              : i % 2 === 0
+              ? MATERIALS.navalWhiteArmor
+              : MATERIALS.hullSlateGrey;
+
+          const plateMesh = new THREE.Mesh(plateGeo, mat);
+          // Mirror for starboard (-Z) or ventral (-Y)
+          plateMesh.scale.set(1, ySide, zSide);
+          // Angle the glacis plate downward toward the outer chine to form a true wedge cross-section!
+          const baseSlope = -ySide * zSide * 0.32;
+          plateHolder.rotation.x = baseSlope;
+          plateHolder.add(plateMesh);
+
+          // Internal Pantograph Strut & Hydraulic Ram under each Dorsal Plate
+          let hydraulic = null;
+          let anchorHull = null;
+          let anchorPlate = null;
+          if (ySide > 0) {
+            anchorHull = new THREE.Object3D();
+            anchorHull.position.set(0, -0.35, zSide * (wAft * 0.38));
+            mountGroup.add(anchorHull);
+
+            anchorPlate = new THREE.Object3D();
+            anchorPlate.position.set(0, -0.05, zSide * (wAft * 0.62));
+            plateHolder.add(anchorPlate);
+
+            hydraulic = createHydraulicActuator(0.06, 0.035, 1.1, MATERIALS.crimsonActuator);
+            mountGroup.add(hydraulic.root);
+          }
+
+          articulatedHullPlates.push({
+            index: i,
+            xCenter,
+            ySide,
+            zSide,
+            baseSlope,
+            mountGroup,
+            plateHolder,
+            hydraulic,
+            anchorHull,
+            anchorPlate
+          });
+        }
+      }
+    }
+
+    // ============================================================================
+    // 3. TWIN-FORKED SPEARHEAD PROW, RACK-AND-PINION BOW MANDIBLES &
+    //    FULL-LENGTH SPINAL MASS-DRIVER ACCELERATOR (X = +4.0 to +19.2)
+    // ============================================================================
+    const bowProwGroup = new THREE.Group();
+    bowProwGroup.position.set(11.5, 0, 0);
+    shipRoot.add(bowProwGroup);
+
+    // Central Spinal Mass-Driver Twin Rails & 18 Pulsing Flux Accelerator Rings
+    const railgunSpineGroup = new THREE.Group();
+    bowProwGroup.add(railgunSpineGroup);
+
+    for (let yOff of [-0.24, 0.24]) {
+      const rail = new THREE.Mesh(
+        new THREE.BoxGeometry(14.5, 0.14, 0.22),
+        MATERIALS.mirrorChrome
+      );
+      rail.position.set(0.2, yOff, 0);
+      railgunSpineGroup.add(rail);
+    }
+
+    const plasmaCoreRod = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.11, 0.11, 14.2, 16),
+      MATERIALS.cyanPlasma
+    );
+    plasmaCoreRod.rotation.z = Math.PI * 0.5;
+    plasmaCoreRod.position.set(0.2, 0, 0);
+    railgunSpineGroup.add(plasmaCoreRod);
+
+    const fluxRings = [];
+    for (let c = 0; c < SPINAL_ACCELERATOR_COILS; c++) {
+      const xPos = -6.2 + c * 0.78;
+      const coilRing = new THREE.Mesh(
+        new THREE.TorusGeometry(0.42, 0.055, 10, 24),
+        c % 2 === 0 ? MATERIALS.champagneGold : MATERIALS.berylliumCopper
+      );
+      coilRing.rotation.y = Math.PI * 0.5;
+      coilRing.position.set(xPos, 0, 0);
+      railgunSpineGroup.add(coilRing);
+      fluxRings.push({ mesh: coilRing, idx: c, baseX: xPos });
+    }
+
+    // Port & Starboard Sculpted Spearhead Bow Mandibles driven by Rack-and-Pinion Gears!
+    const PROW_MOD = 0.095;
+    const PROW_PINION_T = 16;
+    const R_PROW_PINION = (PROW_MOD * PROW_PINION_T) * 0.5; // 0.76
+    const prowPinionGeo = createExactSpurGearGeometry(PROW_MOD, PROW_PINION_T, 0.22, 0.14, false);
+    const prowRackGeo = createExactLinearRackGeometry(PROW_MOD, 10, 0.2, 0.22);
+    prowRackGeo.rotateY(Math.PI * 0.5);
+
+    const prowMandibles = [];
+    for (let zSide of [-1, 1]) {
+      const mandibleGroup = new THREE.Group();
+      bowProwGroup.add(mandibleGroup);
+
+      // 2 Rack-and-Pinion Drives per Mandible
+      const pinions = [];
+      for (let xStation of [-1.2, 2.4]) {
+        const pPivot = new THREE.Group();
+        pPivot.position.set(xStation, 0.35 + R_PROW_PINION, zSide * 0.85);
+        pPivot.rotation.y = Math.PI * 0.5;
+        bowProwGroup.add(pPivot);
+
+        const pMesh = new THREE.Mesh(prowPinionGeo, MATERIALS.aerospaceOrange);
+        pPivot.add(pMesh);
+        pinions.push(pMesh);
+
+        const rMesh = new THREE.Mesh(prowRackGeo, MATERIALS.champagneGold);
+        rMesh.position.set(xStation, 0.35, zSide * 0.35);
+        mandibleGroup.add(rMesh);
+      }
+
+      // Sculpted Tapered Spearhead Prow Hull (extends to X = +7.8 local -> +19.3 world!)
+      const prowShape = new THREE.Shape();
+      prowShape.moveTo(-2.5, 0.45);
+      prowShape.lineTo(6.8, 0.18);
+      prowShape.lineTo(7.6, 0.42);
+      prowShape.lineTo(4.2, 1.35);
+      prowShape.lineTo(-2.5, 1.85);
+      prowShape.closePath();
+
+      const prowExtrude = new THREE.ExtrudeGeometry(prowShape, {
+        steps: 1,
+        depth: 0.95,
+        bevelEnabled: true,
+        bevelThickness: 0.08,
+        bevelSize: 0.08,
+        bevelSegments: 2
+      });
+      prowExtrude.rotateX(Math.PI * 0.5);
+      prowExtrude.translate(0, 0.48, 0);
+
+      const prowHullMesh = new THREE.Mesh(prowExtrude, MATERIALS.navalWhiteArmor);
+      prowHullMesh.scale.z = zSide;
+      mandibleGroup.add(prowHullMesh);
+
+      // Forward Cobalt Accent Cheek Armor & Sensor Lance
+      const cheekArmor = new THREE.Mesh(
+        new THREE.BoxGeometry(5.5, 0.55, 0.32),
+        MATERIALS.cobaltArmor
+      );
+      cheekArmor.position.set(2.2, 0.0, zSide * 1.32);
+      cheekArmor.rotation.y = zSide * 0.12;
+      mandibleGroup.add(cheekArmor);
+
+      const sensorLance = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.035, 0.09, 2.8, 12),
+        MATERIALS.mirrorChrome
+      );
+      sensorLance.rotation.z = -Math.PI * 0.5;
+      sensorLance.position.set(8.2, 0.0, zSide * 0.35);
+      mandibleGroup.add(sensorLance);
+
+      prowMandibles.push({ zSide, mandibleGroup, pinions });
+    }
+
+    // ============================================================================
+    // 4. TERRACED NAVAL COMMAND CITADEL TOWER, 4 SUPERFIRING TRIPLE RAILGUN
+    //    TURRETS (32T:16T BARBETTES + RECOILING BARRELS) & 20 VLS MISSILE SILOS
+    // ============================================================================
+    const citadelTowerGroup = new THREE.Group();
+    citadelTowerGroup.position.set(-4.5, 1.85, 0);
+    shipRoot.add(citadelTowerGroup);
+
+    // Lower Armored Citadel Deckhouse
+    const deckhouse1 = new THREE.Mesh(
+      new THREE.BoxGeometry(6.8, 1.15, 3.6),
+      MATERIALS.navalWhiteArmor
+    );
+    citadelTowerGroup.add(deckhouse1);
+
+    // Illuminated Admiral's Conning Deck
+    const deckhouse2 = new THREE.Mesh(
+      new THREE.BoxGeometry(4.8, 0.95, 2.8),
+      MATERIALS.crewWindows
+    );
+    deckhouse2.position.set(-0.4, 1.0, 0);
+    citadelTowerGroup.add(deckhouse2);
+
+    // Swept Armored Bridge Wings (Port & Starboard Observation Walkways)
+    const bridgeWing = new THREE.Mesh(
+      new THREE.BoxGeometry(2.4, 0.58, 5.4),
+      MATERIALS.cobaltArmor
+    );
+    bridgeWing.position.set(-0.6, 1.72, 0);
+    citadelTowerGroup.add(bridgeWing);
+
+    const bridgeWindows = new THREE.Mesh(
+      new THREE.BoxGeometry(2.48, 0.28, 5.45),
+      MATERIALS.cyanPlasma
+    );
+    bridgeWindows.position.set(-0.55, 1.75, 0);
+    citadelTowerGroup.add(bridgeWindows);
+
+    // Twin Geared Phased-Array Radar Masts atop the Command Bridge
+    const radarMasts = [];
+    const mastGearGeo = createExactSpurGearGeometry(0.07, 18, 0.16, 0.1, false);
+    for (let zOff of [-1.6, 1.6]) {
+      const mastPivot = new THREE.Group();
+      mastPivot.position.set(-0.8, 2.15, zOff);
+      citadelTowerGroup.add(mastPivot);
+
+      const gear = new THREE.Mesh(mastGearGeo, MATERIALS.champagneGold);
+      gear.rotation.x = Math.PI * 0.5;
+      mastPivot.add(gear);
+
+      const scanner = new THREE.Mesh(
+        new THREE.BoxGeometry(0.32, 0.45, 1.45),
+        MATERIALS.aerospaceOrange
+      );
+      scanner.position.y = 0.42;
+      mastPivot.add(scanner);
+      radarMasts.push({ mastPivot, dir: Math.sign(zOff) });
+    }
+
+    // 4 Superfiring Battleship Triple-Barrel Railgun Turrets (32T Base Ring Gear + 16T Pinion)
+    const TURRET_MOD = 0.08;
+    const TURRET_RING_T = 32; // Pitch R = 1.28
+    const TURRET_PIN_T = 16;  // Pitch R = 0.64 (Center dist = 1.92)
+    const tRingGeo = createExactSpurGearGeometry(TURRET_MOD, TURRET_RING_T, 0.2, 0.35, false);
+    const tPinGeo = createExactSpurGearGeometry(TURRET_MOD, TURRET_PIN_T, 0.22, 0.12, false);
+
+    const heavyTurrets = [];
+    const turretMounts = [
+      { x: 6.2, y: 1.48, z: 0, invert: false },   // Turret A (Forward Dorsal)
+      { x: 2.2, y: 1.92, z: 0, invert: false },   // Turret B (Superfiring Forward Dorsal)
+      { x: -8.6, y: 2.05, z: 0, invert: false },  // Turret X (Aft Dorsal behind Citadel)
+      { x: 3.5, y: -1.68, z: 0, invert: true }    // Turret V (Ventral Guard Battery)
+    ];
+
+    turretMounts.forEach((tm, idx) => {
+      const barbetteGroup = new THREE.Group();
+      barbetteGroup.position.set(tm.x, tm.y, tm.z);
+      if (tm.invert) barbetteGroup.rotation.x = Math.PI;
+      shipRoot.add(barbetteGroup);
+
+      // Armored Cylindrical Barbette Pedestal
+      const pedestal = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.18, 1.32, 0.65, 24),
+        MATERIALS.darkFrameGunmetal
+      );
+      pedestal.position.y = -0.32;
+      barbetteGroup.add(pedestal);
+
+      // Rotating Turret House + Exposed 32-Tooth Slewing Ring Gear
+      const turretHousePivot = new THREE.Group();
+      barbetteGroup.add(turretHousePivot);
+
+      const ringGear = new THREE.Mesh(tRingGeo, MATERIALS.champagneGold);
+      ringGear.rotation.x = -Math.PI * 0.5;
+      turretHousePivot.add(ringGear);
+
+      // Angled Battleship Turret Armor Shield
+      const houseBody = new THREE.Mesh(
+        new THREE.BoxGeometry(1.85, 0.58, 1.55),
+        idx % 2 === 0 ? MATERIALS.navalWhiteArmor : MATERIALS.cobaltArmor
+      );
+      houseBody.position.set(-0.1, 0.34, 0);
+      turretHousePivot.add(houseBody);
+
+      const rangefinderEars = new THREE.Mesh(
+        new THREE.BoxGeometry(0.45, 0.28, 2.15),
+        MATERIALS.aerospaceOrange
+      );
+      rangefinderEars.position.set(-0.45, 0.42, 0);
+      turretHousePivot.add(rangefinderEars);
+
+      // Elevating 3-Barrel Cradle + Individual Recoil Slides & Return Springs
+      const cradlePivot = new THREE.Group();
+      cradlePivot.position.set(0.65, 0.38, 0);
+      turretHousePivot.add(cradlePivot);
+
+      const barrels = [];
+      for (let bIdx = -1; bIdx <= 1; bIdx++) {
+        const barrelSlide = new THREE.Group();
+        barrelSlide.position.set(0, 0, bIdx * 0.38);
+        cradlePivot.add(barrelSlide);
+
+        const jacket = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.11, 0.13, 0.85, 12),
+          MATERIALS.berylliumCopper
+        );
+        jacket.rotation.z = -Math.PI * 0.5;
+        jacket.position.x = 0.35;
+
+        const tube = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.065, 0.08, 2.45, 12),
+          MATERIALS.mirrorChrome
+        );
+        tube.rotation.z = -Math.PI * 0.5;
+        tube.position.x = 1.25;
+
+        barrelSlide.add(jacket, tube);
+        barrels.push({ slide: barrelSlide, offsetPhase: (bIdx + 1) * 0.8 + idx * 1.5 });
+      }
+
+      // 16-Tooth Deck Slewing Pinion meshing with the 32-Tooth Barbette Ring Gear at X = -1.92
+      const pinionHolder = new THREE.Group();
+      pinionHolder.position.set(-1.92, 0, 0);
+      barbetteGroup.add(pinionHolder);
+
+      const pinionMesh = new THREE.Mesh(tPinGeo, MATERIALS.crimsonActuator);
+      pinionMesh.rotation.x = -Math.PI * 0.5;
+      pinionHolder.add(pinionMesh);
+
+      heavyTurrets.push({
+        barbetteGroup,
+        turretHousePivot,
+        cradlePivot,
+        barrels,
+        pinionMesh,
+        baseY: tm.y,
+        invert: tm.invert,
+        idx
+      });
+    });
+
+    // 20 Dorsal Vertical Launch System (VLS) Missile Silo Cells with Hinged Doors & Elevating Warheads
+    const vlsCells = [];
+    for (let i = 0; i < VLS_MISSILE_CELL_COUNT; i++) {
+      const row = Math.floor(i / 2);
+      const zSide = i % 2 === 0 ? 1 : -1;
+      const xPos = -0.8 + row * 0.65;
+
+      const cellGroup = new THREE.Group();
+      cellGroup.position.set(xPos, 1.35, zSide * 1.45);
+      shipRoot.add(cellGroup);
+
+      // Hinged Armored Hatch Door
+      const hatchPivot = new THREE.Group();
+      hatchPivot.position.set(0, 0.08, zSide * 0.24);
+      cellGroup.add(hatchPivot);
+
+      const hatchDoor = new THREE.Mesh(
+        new THREE.BoxGeometry(0.48, 0.08, 0.48),
+        MATERIALS.aerospaceOrange
+      );
+      hatchDoor.position.set(0, 0, -zSide * 0.24);
+      hatchPivot.add(hatchDoor);
+
+      // Elevating Missile Canister inside the Silo
+      const missileCanister = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.12, 0.14, 0.85, 12),
+        MATERIALS.navalWhiteArmor
+      );
+      const warheadTip = new THREE.Mesh(
+        new THREE.ConeGeometry(0.12, 0.28, 12),
+        MATERIALS.crimsonActuator
+      );
+      warheadTip.position.y = 0.56;
+      missileCanister.add(warheadTip);
+      cellGroup.add(missileCanister);
+
+      vlsCells.push({ cellGroup, hatchPivot, missileCanister, idx: i, zSide });
+    }
+
+    // 12 Folding Aft Dorsal & Ventral Cryo-Radiator Spine Vanes + Midship Flight Hangar Bays
+    const dorsalRadiatorFins = [];
+    for (let i = 0; i < DORSAL_RADIATOR_FIN_COUNT; i++) {
+      const ySide = i % 2 === 0 ? 1 : -1;
+      const pairIdx = Math.floor(i / 2);
+      const xPos = -10.8 + pairIdx * 0.95;
+
+      const finPivot = new THREE.Group();
+      finPivot.position.set(xPos, ySide * 1.65, (pairIdx % 2 === 0 ? 1 : -1) * 1.35);
+      shipRoot.add(finPivot);
+
+      const vane = new THREE.Mesh(
+        new THREE.BoxGeometry(0.68, 1.45, 0.08),
+        MATERIALS.iridescentTeal
+      );
+      vane.position.y = ySide * 0.72;
+      finPivot.add(vane);
+
+      const trim = new THREE.Mesh(
+        new THREE.BoxGeometry(0.72, 0.12, 0.12),
+        MATERIALS.champagneGold
+      );
+      trim.position.y = ySide * 1.45;
+      finPivot.add(trim);
+
+      dorsalRadiatorFins.push({ finPivot, ySide, pairIdx });
+    }
+
+    // 6 Active Carrier Flight Hangar Bays (Forward Catapults, Midship Main Decks & Ventral Recovery Bays)
+    const hangarBayConfigs = [
+      { x: 6.4, y: -0.15, zSide: 1, len: 3.2, label: 'FWD-PORT CATAPULT' },
+      { x: 6.4, y: -0.15, zSide: -1, len: 3.2, label: 'FWD-STBD CATAPULT' },
+      { x: 1.2, y: -0.35, zSide: 1, len: 4.4, label: 'MID-PORT FLIGHT DECK' },
+      { x: 1.2, y: -0.35, zSide: -1, len: 4.4, label: 'MID-STBD FLIGHT DECK' },
+      { x: -4.2, y: -0.85, zSide: 1, len: 3.6, label: 'AFT-PORT RECOVERY' },
+      { x: -4.2, y: -0.85, zSide: -1, len: 3.6, label: 'AFT-STBD RECOVERY' }
+    ];
+
+    const hangarBays = [];
+    hangarBayConfigs.forEach((hCfg, hIdx) => {
+      const zSide = hCfg.zSide;
+      const bayBeam = getHullHalfBeamAtX(hCfg.x) * 0.76;
+      const bayGroup = new THREE.Group();
+      bayGroup.position.set(hCfg.x, hCfg.y, zSide * bayBeam);
+      shipRoot.add(bayGroup);
+
+      // Recessed Illuminated Carrier Runway Deck
+      const deckRunway = new THREE.Mesh(
+        new THREE.BoxGeometry(hCfg.len, 0.14, 1.45),
+        MATERIALS.crewWindows
+      );
+      bayGroup.add(deckRunway);
+
+      // Glowing Magnetic Catapult Launch & Recovery Guide Rails extending to Bay Mouth
+      for (let xOff of [-hCfg.len * 0.28, hCfg.len * 0.28]) {
+        const guideRail = new THREE.Mesh(
+          new THREE.BoxGeometry(0.18, 0.06, 1.65),
+          hIdx < 2 ? MATERIALS.cyanPlasma : MATERIALS.amberAfterburner
+        );
+        guideRail.position.set(xOff, 0.09, zSide * 0.15);
+        bayGroup.add(guideRail);
+      }
+
+      // Articulated Armored Hangar Blast Door
+      const blastDoorPivot = new THREE.Group();
+      blastDoorPivot.position.set(0, 0.62, zSide * 0.62);
+      bayGroup.add(blastDoorPivot);
+
+      const blastDoor = new THREE.Mesh(
+        new THREE.BoxGeometry(hCfg.len * 0.94, 0.68, 0.12),
+        hIdx % 2 === 0 ? MATERIALS.aerospaceOrange : MATERIALS.cobaltArmor
+      );
+      blastDoor.position.y = -0.34;
+      blastDoorPivot.add(blastDoor);
+
+      // Overhead Reciprocating Munitions Gantry Crane
+      const gantryCarriage = new THREE.Mesh(
+        new THREE.BoxGeometry(0.45, 0.22, 1.15),
+        MATERIALS.champagneGold
+      );
+      gantryCarriage.position.y = 0.46;
+      bayGroup.add(gantryCarriage);
+
+      hangarBays.push({
+        bayGroup,
+        blastDoorPivot,
+        gantryCarriage,
+        zSide,
+        baseX: hCfg.x,
+        baseY: hCfg.y,
+        baseZ: zSide * bayBeam,
+        len: hCfg.len
+      });
+    });
+
+    // ============================================================================
+    // 4B. EIGHT AUTOMATED BROADSIDE ROTARY CIWS GATTLING SPONSONS (24T:12T GEARS)
+    //     & VENTRAL SINGULARITY TOKAMAK CORE WITH 6 RADIAL CRYO-COOLANT PISTONS
+    // ============================================================================
+    const ciwsSponsons = [];
+    const ciwsRingGeo = createExactSpurGearGeometry(0.055, 24, 0.14, 0.12, false);
+    const ciwsPinGeo = createExactSpurGearGeometry(0.055, 12, 0.16, 0.08, false);
+    const ciwsXStations = [-6.2, -1.6, 3.6, 8.2];
+
+    ciwsXStations.forEach((xPos, sIdx) => {
+      const halfBeam = getHullHalfBeamAtX(xPos) + 0.25;
+      for (let zSide of [-1, 1]) {
+        const sponsonGroup = new THREE.Group();
+        sponsonGroup.position.set(xPos, 0.18, zSide * halfBeam);
+        shipRoot.add(sponsonGroup);
+
+        const arm = new THREE.Mesh(
+          new THREE.BoxGeometry(0.95, 0.28, 0.75),
+          MATERIALS.darkFrameGunmetal
+        );
+        sponsonGroup.add(arm);
+
+        // 12-Tooth Drive Pinion on Sponson Deck
+        const pinMesh = new THREE.Mesh(ciwsPinGeo, MATERIALS.crimsonActuator);
+        pinMesh.rotation.x = Math.PI * 0.5;
+        pinMesh.position.set(-0.99, 0.22, zSide * 0.15);
+        sponsonGroup.add(pinMesh);
+
+        // 24-Tooth Rotating CIWS Turret Mount (Meshes at center distance 0.66 + 0.33 = 0.99)
+        const yawPivot = new THREE.Group();
+        yawPivot.position.set(0, 0.22, zSide * 0.15);
+        sponsonGroup.add(yawPivot);
+
+        const ringGear = new THREE.Mesh(ciwsRingGeo, MATERIALS.champagneGold);
+        ringGear.rotation.x = Math.PI * 0.5;
+        yawPivot.add(ringGear);
+
+        const yoke = new THREE.Mesh(
+          new THREE.BoxGeometry(0.52, 0.36, 0.48),
+          MATERIALS.navalWhiteArmor
+        );
+        yoke.position.y = 0.22;
+        yawPivot.add(yoke);
+
+        // 6-Barrel Spinning Rotary Gattling Cluster
+        const gattlingPivot = new THREE.Group();
+        gattlingPivot.position.set(0, 0.26, zSide * 0.28);
+        yawPivot.add(gattlingPivot);
+
+        for (let b = 0; b < 6; b++) {
+          const bAng = (b / 6) * Math.PI * 2;
+          const barrel = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.022, 0.022, 0.85, 8),
+            MATERIALS.mirrorChrome
+          );
+          barrel.rotation.x = Math.PI * 0.5;
+          barrel.position.set(Math.cos(bAng) * 0.09, Math.sin(bAng) * 0.09, zSide * 0.38);
+          gattlingPivot.add(barrel);
+        }
+
+        const clampRing = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.13, 0.13, 0.12, 12),
+          MATERIALS.aerospaceOrange
+        );
+        clampRing.rotation.x = Math.PI * 0.5;
+        clampRing.position.z = zSide * 0.62;
+        gattlingPivot.add(clampRing);
+
+        ciwsSponsons.push({
+          sponsonGroup,
+          yawPivot,
+          pinMesh,
+          gattlingPivot,
+          zSide,
+          baseZ: zSide * halfBeam,
+          phase: sIdx * 1.1 + (zSide > 0 ? 0 : 2.1)
+        });
+      }
+    });
+
+    // Ventral Exposed Singularity Tokamak Core, Dual 48-Tooth Gimbal Rings & 6 Radial Cryo-Pistons
+    const ventralReactorGroup = new THREE.Group();
+    ventralReactorGroup.position.set(-1.2, -2.05, 0);
+    shipRoot.add(ventralReactorGroup);
+
+    const reactorGimbalOuter = new THREE.Mesh(
+      createExactSpurGearGeometry(0.075, 48, 0.22, 1.52, false),
+      MATERIALS.champagneGold
+    );
+    ventralReactorGroup.add(reactorGimbalOuter);
+
+    const reactorGimbalInner = new THREE.Mesh(
+      createExactSpurGearGeometry(0.065, 40, 0.2, 1.08, false),
+      MATERIALS.aerospaceOrange
+    );
+    ventralReactorGroup.add(reactorGimbalInner);
+
+    const singularitySphere = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(0.68, 3),
+      MATERIALS.cyanPlasma
+    );
+    ventralReactorGroup.add(singularitySphere);
+
+    const reactorPistons = [];
+    for (let k = 0; k < REACTOR_COOLANT_PISTONS; k++) {
+      const ang = (k / REACTOR_COOLANT_PISTONS) * Math.PI * 2;
+      const pSlot = new THREE.Group();
+      pSlot.rotation.y = ang;
+      ventralReactorGroup.add(pSlot);
+
+      const cyl = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.18, 0.22, 0.95, 14),
+        MATERIALS.cobaltArmor
+      );
+      cyl.rotation.z = Math.PI * 0.5;
+      cyl.position.x = 2.45;
+      pSlot.add(cyl);
+
+      const plunger = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.11, 0.11, 1.05, 12),
+        MATERIALS.mirrorChrome
+      );
+      plunger.rotation.z = Math.PI * 0.5;
+      plunger.position.x = 1.95;
+      pSlot.add(plunger);
+
+      reactorPistons.push({ plunger, ang });
+    }
+
+    // ============================================================================
+    // 5. VARIABLE-SWEEP FORWARD/AFT STRIKE WINGS (SCULPTED EXTRUDED AIRFOILS,
+    //    36T:18T SECTOR GEARS, SLATS, SPLIT AIRBRAKES & VTOL THRUSTER PODS)
+    // ============================================================================
+    const WING_MOD = 0.125;
+    const WING_SEC_T = 36; // Pitch R = 2.25
+    const WING_DRV_T = 18; // Pitch R = 1.125 (Center dist = 3.375)
+    const wingSecGearGeo = createExactSpurGearGeometry(WING_MOD, WING_SEC_T, 0.36, 0.4, true);
+    const wingDrvGearGeo = createExactSpurGearGeometry(WING_MOD, WING_DRV_T, 0.38, 0.2, false);
+    const vtolBevelGeo = createExactSpurGearGeometry(0.08, 20, 0.18, 0.12, false);
+
+    const strikeWingGeo = createSweptStrikeWingGeometry(7.2, 3.8, 1.5, 0.28);
+    const strikeWings = [];
+
+    for (let zSide of [-1, 1]) {
+      const wingSponsonGroup = new THREE.Group();
+      wingSponsonGroup.position.set(-2.6, -0.1, zSide * 3.15);
+      wingSponsonGroup.rotation.x = zSide > 0 ? Math.PI * 0.5 : -Math.PI * 0.5;
+      shipRoot.add(wingSponsonGroup);
+
+      // 18-Tooth Hull Drive Pinion at (-3.375, 0)
+      const driverPivot = new THREE.Group();
+      driverPivot.position.set(-3.375, 0, 0);
+      wingSponsonGroup.add(driverPivot);
+      driverPivot.add(new THREE.Mesh(wingDrvGearGeo, MATERIALS.aerospaceOrange));
+
+      // Main Sweeping Strike Wing Pivot + 36-Tooth Root Sector Gear
+      const wingPivot = new THREE.Group();
+      wingSponsonGroup.add(wingPivot);
+
+      const secGear = new THREE.Mesh(wingSecGearGeo, MATERIALS.champagneGold);
+      wingPivot.add(secGear);
+
+      // Sculpted Extruded Strike Wing Airfoil
+      const airfoilMesh = new THREE.Mesh(strikeWingGeo, MATERIALS.navalWhiteArmor);
+      airfoilMesh.position.set(0.8, 0, 0);
+      wingPivot.add(airfoilMesh);
+
+      // Exposed Internal Geared Idler Train inside the Wing Cutout Bay!
+      const internalWingGears = [];
+      for (let g = 0; g < 3; g++) {
+        const gMesh = new THREE.Mesh(
+          createExactSpurGearGeometry(0.08, 16, 0.22, 0.1, false),
+          g % 2 === 0 ? MATERIALS.champagneGold : MATERIALS.crimsonActuator
+        );
+        gMesh.position.set(2.45 + g * 1.28, 0.02, 0);
+        wingPivot.add(gMesh);
+        internalWingGears.push({ mesh: gMesh, dir: g % 2 === 0 ? 1 : -1, phase: g });
+      }
+
+      // Articulated Leading-Edge High-Energy Slats & Trailing-Edge Split Airbrake Flaps
+      const leadingSlatPivot = new THREE.Group();
+      leadingSlatPivot.position.set(4.5, -1.25, 0);
+      wingPivot.add(leadingSlatPivot);
+
+      const slatBlade = new THREE.Mesh(
+        new THREE.BoxGeometry(3.8, 0.42, 0.14),
+        MATERIALS.aerospaceOrange
+      );
+      leadingSlatPivot.add(slatBlade);
+
+      const upperFlapPivot = new THREE.Group();
+      upperFlapPivot.position.set(4.2, 1.15, 0.12);
+      const lowerFlapPivot = new THREE.Group();
+      lowerFlapPivot.position.set(4.2, 1.15, -0.12);
+      wingPivot.add(upperFlapPivot, lowerFlapPivot);
+
+      const flapGeo = new THREE.BoxGeometry(3.6, 0.55, 0.08);
+      flapGeo.translate(0, 0.25, 0);
+      upperFlapPivot.add(new THREE.Mesh(flapGeo, MATERIALS.cobaltArmor));
+      lowerFlapPivot.add(new THREE.Mesh(flapGeo, MATERIALS.cobaltArmor));
+
+      // Wingtip Gimbaled VTOL / Attitude Control Thruster Pod + Bevel Gear
+      const vtolPodPivot = new THREE.Group();
+      vtolPodPivot.position.set(8.15, 0.15, 0);
+      wingPivot.add(vtolPodPivot);
+
+      const vtolGear = new THREE.Mesh(vtolBevelGeo, MATERIALS.champagneGold);
+      vtolPodPivot.add(vtolGear);
+
+      const vtolNacelle = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.42, 0.52, 2.4, 16),
+        MATERIALS.darkFrameGunmetal
+      );
+      vtolNacelle.position.y = 0.15;
+      vtolPodPivot.add(vtolNacelle);
+
+      const vtolGlow = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.32, 0.38, 0.3, 16),
+        MATERIALS.cyanPlasma
+      );
+      vtolGlow.position.y = 1.38;
+      vtolPodPivot.add(vtolGlow);
+
+      // Twin Heavy Telescoping Hydraulic Cylinders bracing the Wing Root
+      const hullAnchor = new THREE.Object3D();
+      hullAnchor.position.set(-1.6, -2.1, 0);
+      wingSponsonGroup.add(hullAnchor);
+
+      const wingAnchor = new THREE.Object3D();
+      wingAnchor.position.set(2.4, -0.85, 0);
+      wingPivot.add(wingAnchor);
+
+      const wingHydraulic = createHydraulicActuator(0.14, 0.08, 2.9, MATERIALS.crimsonActuator);
+      wingSponsonGroup.add(wingHydraulic.root);
+
+      strikeWings.push({
+        zSide,
+        wingSponsonGroup,
+        driverPivot,
+        wingPivot,
+        internalWingGears,
+        leadingSlatPivot,
+        upperFlapPivot,
+        lowerFlapPivot,
+        vtolPodPivot,
+        hullAnchor,
+        wingAnchor,
+        wingHydraulic
+      });
+    }
+
+    // ============================================================================
+    // 6. SIX COLOSSAL STERN PLANETARY FUSION THRUSTERS WITH EPICYCLIC GEARBOXES,
+    //    COUNTER-ROTATING FANS & 16-PETAL TURKEY-FEATHER VECTORING NOZZLES
+    // ============================================================================
+    const sternArrayGroup = new THREE.Group();
+    sternArrayGroup.position.set(-11.8, 0, 0);
+    shipRoot.add(sternArrayGroup);
+
+    const ENG_MOD = 0.06;
+    const ENG_SUN_T = 24;    // R = 0.72
+    const ENG_PLANET_T = 12; // R = 0.36 (Orbit = 1.08)
+    const ENG_RING_T = 48;   // R = 1.44
+
+    const engSunGeo = createExactSpurGearGeometry(ENG_MOD, ENG_SUN_T, 0.2, 0.18, false);
+    const engPlanetGeo = createExactSpurGearGeometry(ENG_MOD, ENG_PLANET_T, 0.2, 0.09, false);
+    const engRingGeo = createExactInternalRingGearGeometry(ENG_MOD, ENG_RING_T, 1.68, 0.22);
+    const compressorFanGeo = createExactSpurGearGeometry(0.075, 36, 0.14, 0.32, true);
+
+    const engineConfigs = [
+      { y: 0.35, z: 1.85, scale: 1.12, main: true },
+      { y: 0.35, z: -1.85, scale: 1.12, main: true },
+      { y: 1.15, z: 4.15, scale: 0.85, main: false },
+      { y: 1.15, z: -4.15, scale: 0.85, main: false },
+      { y: -1.05, z: 3.65, scale: 0.82, main: false },
+      { y: -1.05, z: -3.65, scale: 0.82, main: false }
+    ];
+
+    const propulsionUnits = [];
+
+    engineConfigs.forEach((cfg, eIdx) => {
+      const unitGroup = new THREE.Group();
+      unitGroup.position.set(0, cfg.y, cfg.z);
+      unitGroup.scale.setScalar(cfg.scale);
+      sternArrayGroup.add(unitGroup);
+
+      // Cutaway Armored Engine Pod Cowling (top & bottom half-shells)
+      const topCowl = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.75, 1.85, 3.8, 24, 1, false, 0, Math.PI * 0.82),
+        eIdx % 2 === 0 ? MATERIALS.navalWhiteArmor : MATERIALS.cobaltArmor
+      );
+      topCowl.rotation.z = Math.PI * 0.5;
+      unitGroup.add(topCowl);
+
+      // Exposed Epicyclic Planetary Gearbox inside the Engine Pod (24T + 2*12T = 48T)
+      const gearBoxGroup = new THREE.Group();
+      gearBoxGroup.position.x = 0.85;
+      gearBoxGroup.rotation.y = Math.PI * 0.5;
+      unitGroup.add(gearBoxGroup);
+
+      const sunMesh = new THREE.Mesh(engSunGeo, MATERIALS.champagneGold);
+      const ringMesh = new THREE.Mesh(engRingGeo, MATERIALS.aerospaceOrange);
+      ringMesh.rotation.z = Math.PI / ENG_RING_T;
+      gearBoxGroup.add(sunMesh, ringMesh);
+
+      const carrierGroup = new THREE.Group();
+      gearBoxGroup.add(carrierGroup);
+
+      const planets = [];
+      for (let p = 0; p < 6; p++) {
+        const beta = (p / 6) * Math.PI * 2;
+        const pAxle = new THREE.Group();
+        pAxle.position.set(Math.cos(beta) * 1.08, Math.sin(beta) * 1.08, 0);
+        pAxle.rotation.z = beta;
+        const pMesh = new THREE.Mesh(engPlanetGeo, MATERIALS.brushedSteel);
+        pAxle.add(pMesh);
+        carrierGroup.add(pAxle);
+        planets.push(pMesh);
+      }
+
+      // Dual Counter-Rotating 36-Blade Axial Compressor Turbines
+      const fan1 = new THREE.Mesh(compressorFanGeo, MATERIALS.mirrorChrome);
+      fan1.rotation.y = Math.PI * 0.5;
+      fan1.position.x = -0.15;
+
+      const fan2 = new THREE.Mesh(compressorFanGeo, MATERIALS.berylliumCopper);
+      fan2.rotation.y = Math.PI * 0.5;
+      fan2.position.x = -1.05;
+      unitGroup.add(fan1, fan2);
+
+      // Glowing Afterburner Plume Core
+      const burnerCore = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.05, 1.35, 1.8, 20),
+        cfg.main ? MATERIALS.amberAfterburner : MATERIALS.cyanPlasma
+      );
+      burnerCore.rotation.z = Math.PI * 0.5;
+      burnerCore.position.x = -2.35;
+      unitGroup.add(burnerCore);
+
+      // 16-Petal Variable-Area "Turkey-Feather" Vectoring Nozzle + Rotating Unison Ring
+      const unisonRing = new THREE.Mesh(
+        createExactSpurGearGeometry(0.08, 40, 0.2, 1.52, false),
+        MATERIALS.champagneGold
+      );
+      unisonRing.rotation.y = Math.PI * 0.5;
+      unisonRing.position.x = -1.85;
+      unitGroup.add(unisonRing);
+
+      const petals = [];
+      for (let k = 0; k < NOZZLE_PETAL_COUNT; k++) {
+        const phi = (k / NOZZLE_PETAL_COUNT) * Math.PI * 2;
+        const pCarrier = new THREE.Group();
+        pCarrier.position.x = -1.95;
+        pCarrier.rotation.x = phi;
+        unitGroup.add(pCarrier);
+
+        const petalPivot = new THREE.Group();
+        petalPivot.position.set(0, 1.58, 0);
+        pCarrier.add(petalPivot);
+
+        const feather = new THREE.Mesh(
+          new THREE.BoxGeometry(1.75, 0.12, 0.44),
+          k % 2 === 0 ? MATERIALS.darkFrameGunmetal : MATERIALS.aerospaceOrange
+        );
+        feather.position.set(-0.85, -0.16, 0);
+        feather.rotation.z = 0.2;
+        petalPivot.add(feather);
+
+        const actuatorStrut = new THREE.Mesh(
+          new THREE.BoxGeometry(1.4, 0.18, 0.1),
+          MATERIALS.mirrorChrome
+        );
+        actuatorStrut.position.set(-0.7, -0.04, 0);
+        actuatorStrut.rotation.z = 0.2;
+        petalPivot.add(actuatorStrut);
+
+        petals.push({ petalPivot, phi });
+      }
+
+      propulsionUnits.push({
+        unitGroup,
+        baseY: cfg.y,
+        baseZ: cfg.z,
+        sunMesh,
+        ringMesh,
+        carrierGroup,
+        planets,
+        fan1,
+        fan2,
+        unisonRing,
+        petals,
+        eIdx
+      });
+    });
+
+    // Enable universal castShadow & receiveShadow on every mesh in the Mothership
+    shipRoot.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+    });
+
+    // ============================================================================
+    // 7. DEEP-SPACE CELESTIAL ENVIRONMENT (7,500 MULTI-SPECTRAL STARS, DISTANT
+    //    RINGED GAS GIANT & ORBITAL ASTEROID FIELD — NO BASE PLATE!)
+    // ============================================================================
+    const deepSpaceGroup = new THREE.Group();
+    scene.add(deepSpaceGroup);
+
+    function createDeepSpaceStarfield() {
+      const starGeo = new THREE.BufferGeometry();
+      const positions = new Float32Array(DEEP_SPACE_STAR_COUNT * 3);
+      const colors = new Float32Array(DEEP_SPACE_STAR_COUNT * 3);
+
+      const palette = [
+        new THREE.Color(0xffffff),
+        new THREE.Color(0x93c5fd),
+        new THREE.Color(0x38bdf8),
+        new THREE.Color(0xfde68a),
+        new THREE.Color(0xfdba74),
+        new THREE.Color(0x5eead4)
+      ];
+
+      for (let i = 0; i < DEEP_SPACE_STAR_COUNT; i++) {
+        const r = 68 + Math.random() * 190;
+        const theta = Math.random() * Math.PI * 2;
+        // Concentrate 35% of stars along a tilted galactic milky-way band
+        const inBand = Math.random() < 0.38;
+        const phi = inBand
+          ? Math.PI * 0.5 + (Math.random() - 0.5) * 0.32
+          : Math.acos(2 * Math.random() - 1);
+
+        let x = r * Math.sin(phi) * Math.cos(theta);
+        let y = r * Math.cos(phi);
+        let z = r * Math.sin(phi) * Math.sin(theta);
+
+        if (inBand) {
+          // Tilt galactic plane by 28 degrees
+          const tilt = 0.48;
+          const ny = y * Math.cos(tilt) - z * Math.sin(tilt);
+          const nz = y * Math.sin(tilt) + z * Math.cos(tilt);
+          y = ny;
+          z = nz;
+        }
+
+        positions[i * 3] = x;
+        positions[i * 3 + 1] = y;
+        positions[i * 3 + 2] = z;
+
+        const c = palette[Math.floor(Math.random() * palette.length)];
+        const bright = 0.55 + Math.random() * 0.45;
+        colors[i * 3] = c.r * bright;
+        colors[i * 3 + 1] = c.g * bright;
+        colors[i * 3 + 2] = c.b * bright;
+      }
+
+      starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+      const starMat = new THREE.PointsMaterial({
+        size: 0.52,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.92,
+        sizeAttenuation: true
+      });
+
+      const starPoints = new THREE.Points(starGeo, starMat);
+      deepSpaceGroup.add(starPoints);
+
+      // Distant Ringed Gas Giant in Deep Planetary Orbit
+      const planetGroup = new THREE.Group();
+      planetGroup.position.set(-85, -34, -110);
+      planetGroup.rotation.set(0.35, 0.2, -0.42);
+      deepSpaceGroup.add(planetGroup);
+
+      const planetBody = new THREE.Mesh(
+        new THREE.SphereGeometry(22, 48, 36),
+        new THREE.MeshStandardMaterial({
+          color: 0x1e3a8a,
+          roughness: 0.75,
+          metalness: 0.1
+        })
+      );
+      planetGroup.add(planetBody);
+
+      const planetRing = new THREE.Mesh(
+        new THREE.RingGeometry(28, 48, 64),
+        new THREE.MeshStandardMaterial({
+          color: 0x38bdf8,
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.28,
+          roughness: 0.5
+        })
+      );
+      planetRing.rotation.x = Math.PI * 0.5;
+      planetGroup.add(planetRing);
+
+      return starPoints;
+    }
+
+    const starFieldPoints = createDeepSpaceStarfield();
+
+    // ============================================================================
+    // 8. 320 TINY AUTONOMOUS PATROL STRIKE CRAFT & INTERCEPTOR SWARM
+    //    (LAUNCHING FROM THE 6 HANGAR BAYS, FLYING 3D ORBITAL PATROLS & DOCKING!)
+    // ============================================================================
+    function createMicroStrikeFighterGeometries() {
+      // Sculpted miniature delta-dart strike craft hull (0.28 units long vs 38-unit Mothership!)
+      const shape = new THREE.Shape();
+      shape.moveTo(0.16, 0);          // Sharp nosecone tip (+X forward)
+      shape.lineTo(0.03, 0.032);      // Forward fuselage chine
+      shape.lineTo(-0.08, 0.115);     // Swept delta wingtip (+Z)
+      shape.lineTo(-0.13, 0.085);     // Wing trailing edge
+      shape.lineTo(-0.11, 0.028);     // Twin tail root
+      shape.lineTo(-0.14, 0.0);       // Exhaust tail center
+      shape.lineTo(-0.11, -0.028);
+      shape.lineTo(-0.13, -0.085);
+      shape.lineTo(-0.08, -0.115);    // Swept delta wingtip (-Z)
+      shape.lineTo(0.03, -0.032);
+      shape.closePath();
+
+      const hullGeo = new THREE.ExtrudeGeometry(shape, {
+        steps: 1,
+        depth: 0.028,
+        bevelEnabled: true,
+        bevelThickness: 0.008,
+        bevelSize: 0.008,
+        bevelSegments: 1
+      });
+      hullGeo.rotateX(Math.PI * 0.5);
+      hullGeo.translate(0, 0.014, 0);
+
+      // Glowing micro-cockpit canopy
+      const canopyGeo = new THREE.BoxGeometry(0.09, 0.026, 0.028);
+      canopyGeo.translate(0.02, 0.024, 0);
+
+      // Glowing twin micro-afterburner flare
+      const flareGeo = new THREE.ConeGeometry(0.032, 0.14, 8);
+      flareGeo.rotateZ(Math.PI * 0.5);
+      flareGeo.translate(-0.19, 0.0, 0);
+
+      return { hullGeo, canopyGeo, flareGeo };
+    }
+
+    const { hullGeo: microHullGeo, canopyGeo: microCanopyGeo, flareGeo: microFlareGeo } =
+      createMicroStrikeFighterGeometries();
+
+    const swarmHullInstanced = new THREE.InstancedMesh(
+      microHullGeo,
+      new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        metalness: 0.35,
+        roughness: 0.25
+      }),
+      PATROL_SWARM_COUNT
+    );
+    swarmHullInstanced.castShadow = true;
+    swarmHullInstanced.receiveShadow = true;
+    scene.add(swarmHullInstanced);
+
+    const swarmCanopyInstanced = new THREE.InstancedMesh(
+      microCanopyGeo,
+      MATERIALS.cyanPlasma,
+      PATROL_SWARM_COUNT
+    );
+    scene.add(swarmCanopyInstanced);
+
+    const swarmFlareInstanced = new THREE.InstancedMesh(
+      microFlareGeo,
+      MATERIALS.amberAfterburner,
+      PATROL_SWARM_COUNT
+    );
+    scene.add(swarmFlareInstanced);
+
+    // Dynamic 3D Plasma Contrail Ribbons behind all 320 Patrol Craft
+    const trailPositions = new Float32Array(PATROL_SWARM_COUNT * 6); // 2 vertices (head, tail) per ship
+    const trailColors = new Float32Array(PATROL_SWARM_COUNT * 6);
+    const trailGeo = new THREE.BufferGeometry();
+    trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
+    trailGeo.setAttribute('color', new THREE.BufferAttribute(trailColors, 3));
+
+    const swarmTrailsLine = new THREE.LineSegments(
+      trailGeo,
+      new THREE.LineBasicMaterial({
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.68
+      })
+    );
+    scene.add(swarmTrailsLine);
+
+    // Assign each of the 320 tiny ships its home hangar bay, squadron livery & 3D patrol orbit parameters
+    const swarmAgents = [];
+    const squadronPalette = [
+      new THREE.Color(0xf8fafc), // Pearl White Interceptor Wing
+      new THREE.Color(0xf97316), // Aerospace Orange Strike Squadron
+      new THREE.Color(0x38bdf8), // Cobalt/Cyan Fleet Escort Wing
+      new THREE.Color(0xfbbf24), // Champagne Gold Tactical Recon Wing
+      new THREE.Color(0x2dd4bf)  // Teal Heavy Gunship Flotilla
+    ];
+
+    for (let i = 0; i < PATROL_SWARM_COUNT; i++) {
+      const homeBayIdx = i % hangarBays.length;
+      const squadronType = i % 4; // 0: Elliptical CAP, 1: Figure-8 Spine Escort, 2: Wing/Engine Screen, 3: Deep Scout
+      const liveryColor = squadronPalette[i % squadronPalette.length];
+      swarmHullInstanced.setColorAt(i, liveryColor);
+
+      // Trail vertex colors (bright cyan/amber at ship nozzle, fading to deep blue at tail)
+      const isAmber = i % 3 === 0;
+      trailColors[i * 6 + 0] = isAmber ? 1.0 : 0.22;
+      trailColors[i * 6 + 1] = isAmber ? 0.65 : 0.78;
+      trailColors[i * 6 + 2] = isAmber ? 0.15 : 0.98;
+      trailColors[i * 6 + 3] = 0.05;
+      trailColors[i * 6 + 4] = 0.18;
+      trailColors[i * 6 + 5] = 0.35;
+
+      // Lane offset inside the hangar bay so ships launch in neat multi-lane formation
+      const laneOffsetX = ((Math.floor(i / 6) % 5) - 2) * 0.42;
+      const laneOffsetY = ((i % 3) - 1) * 0.09;
+
+      swarmAgents.push({
+        id: i,
+        homeBayIdx,
+        squadronType,
+        phaseOffset: (i / PATROL_SWARM_COUNT) * Math.PI * 2,
+        cycleSpeed: 0.032 + (i % 17) * 0.0014,
+        orbitRadiusX: 14.5 + (i % 19) * 0.62,
+        orbitRadiusZ: 6.8 + (i % 13) * 0.58,
+        orbitHeightY: 2.2 + (i % 11) * 0.48,
+        inclination: ((i % 9) - 4) * 0.14,
+        loopsPerSortie: 2 + (i % 2),
+        laneOffsetX,
+        laneOffsetY,
+        scale: 0.82 + (i % 5) * 0.11
+      });
+    }
+    swarmHullInstanced.instanceColor.needsUpdate = true;
+
+    /**
+     * Evaluates the exact 3D position of tiny patrol ship `agent` at normalized sortie progress `u` in [0, 1):
+     *   - u in [0.00, 0.13]: Catapult Launch out of assigned Mothership Hangar Bay
+     *   - u in [0.13, 0.87]: 3D Orbital Patrol / Escort / Screening around the Mothership
+     *   - u in [0.87, 1.00]: Final Approach & Recovery Docking back inside the Mothership Hangar Bay
+     */
+    function evaluateSwarmAgentPosition(agent, u, outVec) {
+      const bay = hangarBays[agent.homeBayIdx];
+      const zSide = bay.zSide;
+      const bayX = bay.baseX + agent.laneOffsetX;
+      const bayY = bay.baseY + agent.laneOffsetY;
+      const bayMouthZ = bay.baseZ + zSide * (smoothedExplode * 1.15);
+      const insideZ = bayMouthZ - zSide * 1.35; // Deep inside the Mothership hull
+      const launchClearZ = bayMouthZ + zSide * 4.2;
+
+      // Compute the 3D Orbital Patrol point at progress u
+      const patrolT = (u - 0.13) / 0.74;
+      const theta = patrolT * Math.PI * 2 * agent.loopsPerSortie + agent.phaseOffset;
+
+      let px = 0;
+      let py = 0;
+      let pz = 0;
+
+      if (agent.squadronType === 0) {
+        // Squadron 0: Inclined 3D Elliptical Combat Air Patrol around the whole Mothership
+        px = 1.5 + Math.cos(theta) * agent.orbitRadiusX;
+        pz = zSide * Math.sin(theta) * agent.orbitRadiusZ;
+        py = Math.sin(theta * 2.0 + agent.inclination) * agent.orbitHeightY + pz * Math.sin(agent.inclination) * 0.35;
+      } else if (agent.squadronType === 1) {
+        // Squadron 1: High-Speed Figure-Eight Escort skimming the Bridge, Turrets & Spearhead Bow
+        px = 3.2 + Math.sin(theta) * (agent.orbitRadiusX * 0.95);
+        pz = zSide * Math.sin(theta * 2.0) * (agent.orbitRadiusZ * 0.85);
+        py = 2.8 + Math.cos(theta) * (agent.orbitHeightY * 0.75);
+      } else if (agent.squadronType === 2) {
+        // Squadron 2: Corkscrew Wingtip & Stern Engine Defense Screen
+        px = -2.5 + Math.cos(theta) * (agent.orbitRadiusX * 0.82);
+        pz = zSide * (4.8 + Math.sin(theta) * 5.2);
+        py = Math.sin(theta * 3.0) * (agent.orbitHeightY * 0.7);
+      } else {
+        // Squadron 3: Wide Perimeter Reconnaissance Loop
+        px = 0.5 + Math.cos(theta) * (agent.orbitRadiusX * 1.18);
+        pz = zSide * Math.sin(theta) * (agent.orbitRadiusZ * 1.25);
+        py = -1.2 + Math.cos(theta * 2.0) * (agent.orbitHeightY * 0.9);
+      }
+
+      if (u < 0.13) {
+        // PHASE 1: CATAPULT LAUNCH FROM INSIDE HANGAR BAY -> OUT INTO SPACE
+        const t = u / 0.13;
+        const s = t * t * (3 - 2 * t); // smoothstep
+        const catX = bayX + t * 1.8;
+        const catY = bayY + Math.pow(t, 2) * 0.35;
+        const catZ = THREE.MathUtils.lerp(insideZ, launchClearZ, s);
+        const blend = Math.pow(t, 3);
+        outVec.set(
+          THREE.MathUtils.lerp(catX, px, blend),
+          THREE.MathUtils.lerp(catY, py, blend),
+          THREE.MathUtils.lerp(catZ, pz, blend)
+        );
+      } else if (u > 0.87) {
+        // PHASE 3: APPROACH CORRIDOR & DOCKING RECOVERY BACK INSIDE HANGAR BAY
+        const t = (u - 0.87) / 0.13;
+        const s = t * t * (3 - 2 * t);
+        const approachX = bayX - (1 - t) * 2.1;
+        const approachY = bayY - (1 - t) * 0.3;
+        const approachZ = THREE.MathUtils.lerp(launchClearZ, insideZ, s);
+        const blend = 1.0 - Math.pow(1.0 - t, 3);
+        outVec.set(
+          THREE.MathUtils.lerp(px, approachX, blend),
+          THREE.MathUtils.lerp(py, approachY, blend),
+          THREE.MathUtils.lerp(pz, approachZ, blend)
+        );
+      } else {
+        // PHASE 2: ACTIVE 3D ORBITAL PATROL
+        outVec.set(px, py, pz);
+      }
+    }
+
+    // ============================================================================
+    // 4K MULTI-DIRECTIONAL SHADOW-CASTING + GLOBAL ILLUMINATION RIG
+    // ============================================================================
+    const keySunLight = new THREE.DirectionalLight(0xfffbeb, 5.5);
+    keySunLight.position.set(18, 26, 18);
+    keySunLight.castShadow = true;
+    keySunLight.shadow.mapSize.width = 4096;
+    keySunLight.shadow.mapSize.height = 4096;
+    keySunLight.shadow.camera.near = 2;
+    keySunLight.shadow.camera.far = 75;
+    const dX = 21.0;
+    const dY = 14.0;
+    keySunLight.shadow.camera.left = -dX;
+    keySunLight.shadow.camera.right = dX;
+    keySunLight.shadow.camera.top = dY;
+    keySunLight.shadow.camera.bottom = -dY;
+    keySunLight.shadow.bias = -0.00018;
+    keySunLight.shadow.normalBias = 0.024;
+    scene.add(keySunLight);
+
+    const zenithSpotLight = new THREE.SpotLight(0xffffff, 220);
+    zenithSpotLight.position.set(0, 30, 4);
+    zenithSpotLight.angle = Math.PI / 2.5;
+    zenithSpotLight.penumbra = 0.65;
+    zenithSpotLight.decay = 1.6;
+    zenithSpotLight.distance = 80;
+    zenithSpotLight.castShadow = true;
+    zenithSpotLight.shadow.mapSize.width = 2048;
+    zenithSpotLight.shadow.mapSize.height = 2048;
+    zenithSpotLight.shadow.camera.near = 5;
+    zenithSpotLight.shadow.camera.far = 60;
+    zenithSpotLight.shadow.bias = -0.00015;
+    zenithSpotLight.shadow.normalBias = 0.022;
+    scene.add(zenithSpotLight);
+
+    const coolCrossLight = new THREE.DirectionalLight(0x93c5fd, 1.9);
+    coolCrossLight.position.set(-20, 14, -16);
+    coolCrossLight.castShadow = true;
+    coolCrossLight.shadow.mapSize.width = 2048;
+    coolCrossLight.shadow.mapSize.height = 2048;
+    coolCrossLight.shadow.camera.near = 2;
+    coolCrossLight.shadow.camera.far = 75;
+    coolCrossLight.shadow.camera.left = -dX;
+    coolCrossLight.shadow.camera.right = dX;
+    coolCrossLight.shadow.camera.top = dY;
+    coolCrossLight.shadow.camera.bottom = -dY;
+    coolCrossLight.shadow.bias = -0.0002;
+    coolCrossLight.shadow.normalBias = 0.024;
+    scene.add(coolCrossLight);
+
+    const hemiLight = new THREE.HemisphereLight(0xe0f2fe, 0xfde68a, 0.45);
+    hemiLight.position.set(0, 32, 0);
+    scene.add(hemiLight);
+
+    const floorBounceLight = new THREE.DirectionalLight(0x38bdf8, 0.58);
+    floorBounceLight.position.set(0, -24, 8);
+    scene.add(floorBounceLight);
+
+    function applyShadowAndLightingBalance() {
+      const fillFactor = 1.0 - SHADOW_CONTRAST_LEVEL * 0.78;
+      hemiLight.intensity = 1.35 * fillFactor;
+      floorBounceLight.intensity = 1.2 * fillFactor;
+      scene.environmentIntensity = (0.26 + 0.54 * fillFactor) * (GI_EXPOSURE_LEVEL / 1.25);
+      keySunLight.intensity = 4.2 + SHADOW_CONTRAST_LEVEL * 1.85;
+      zenithSpotLight.intensity = 145 + SHADOW_CONTRAST_LEVEL * 95;
+    }
+    applyShadowAndLightingBalance();
+
+    // ============================================================================
+    // UI EVENT BINDINGS & CAMERA INSPECTION PRESETS
+    // ============================================================================
+    const hudSwarmEl = document.getElementById('hud-swarm');
+    const hudSortieEl = document.getElementById('hud-sortie');
+    const hudSweepEl = document.getElementById('hud-sweep');
+    const hudRailgunEl = document.getElementById('hud-railgun');
+    const cycleIndicatorEl = document.getElementById('cycle-indicator');
+
+    const sliderSpeed = document.getElementById('slider-speed');
+    const valSpeed = document.getElementById('val-speed');
+    const sliderSwarmSpeed = document.getElementById('slider-swarm-speed');
+    const valSwarmSpeed = document.getElementById('val-swarm-speed');
+    const sliderMorph = document.getElementById('slider-morph');
+    const valMorph = document.getElementById('val-morph');
+    const sliderExplode = document.getElementById('slider-explode');
+    const valExplode = document.getElementById('val-explode');
+    const sliderShadow = document.getElementById('slider-shadow');
+    const valShadow = document.getElementById('val-shadow');
+    const sliderExposure = document.getElementById('slider-exposure');
+    const valExposure = document.getElementById('val-exposure');
+
+    const btnAutoMorph = document.getElementById('btn-automorph');
+    const btnOrbit = document.getElementById('btn-orbit');
+    const btnBrightBg = document.getElementById('btn-brightbg');
+    const btnWireframe = document.getElementById('btn-wireframe');
+
+    const modeBtns = document.querySelectorAll('.mode-btn');
+    modeBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        ACTIVE_SHIP_MODE = parseInt(btn.dataset.mode, 10);
+        modeBtns.forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    sliderSpeed.addEventListener('input', (e) => {
+      DRIVE_SPEED_MULTIPLIER = parseFloat(e.target.value);
+      valSpeed.textContent = `${DRIVE_SPEED_MULTIPLIER.toFixed(2)}x`;
+    });
+
+    sliderSwarmSpeed.addEventListener('input', (e) => {
+      SWARM_SORTIE_SPEED = parseFloat(e.target.value);
+      valSwarmSpeed.textContent = `${SWARM_SORTIE_SPEED.toFixed(2)}x`;
+    });
+
+    sliderMorph.addEventListener('input', (e) => {
+      MANUAL_MORPH_VALUE = parseFloat(e.target.value);
+      valMorph.textContent = MANUAL_MORPH_VALUE.toFixed(2);
+      if (AUTO_MORPH_ENABLED) {
+        AUTO_MORPH_ENABLED = false;
+        btnAutoMorph.classList.remove('active');
+        cycleIndicatorEl.textContent = 'MANUAL';
+      }
+    });
+
+    sliderExplode.addEventListener('input', (e) => {
+      EXPLODED_VIEW_FACTOR = parseFloat(e.target.value);
+      valExplode.textContent = `${Math.round(EXPLODED_VIEW_FACTOR * 100)}%`;
+    });
+
+    sliderShadow.addEventListener('input', (e) => {
+      SHADOW_CONTRAST_LEVEL = parseFloat(e.target.value);
+      valShadow.textContent = `${Math.round(SHADOW_CONTRAST_LEVEL * 100)}%`;
+      applyShadowAndLightingBalance();
+    });
+
+    sliderExposure.addEventListener('input', (e) => {
+      GI_EXPOSURE_LEVEL = parseFloat(e.target.value);
+      renderer.toneMappingExposure = GI_EXPOSURE_LEVEL;
+      valExposure.textContent = GI_EXPOSURE_LEVEL.toFixed(2);
+      applyShadowAndLightingBalance();
+    });
+
+    btnAutoMorph.addEventListener('click', () => {
+      AUTO_MORPH_ENABLED = !AUTO_MORPH_ENABLED;
+      btnAutoMorph.classList.toggle('active', AUTO_MORPH_ENABLED);
+      cycleIndicatorEl.textContent = AUTO_MORPH_ENABLED ? 'AUTO-TRANSFORM' : 'MANUAL';
+    });
+
+    btnOrbit.addEventListener('click', () => {
+      AUTO_ORBIT_ENABLED = !AUTO_ORBIT_ENABLED;
+      controls.autoRotate = AUTO_ORBIT_ENABLED;
+      btnOrbit.classList.toggle('active', AUTO_ORBIT_ENABLED);
+    });
+
+    btnBrightBg.addEventListener('click', () => {
+      DAYLIGHT_DOCK_ENABLED = !DAYLIGHT_DOCK_ENABLED;
+      document.body.classList.toggle('bright-lab', DAYLIGHT_DOCK_ENABLED);
+      btnBrightBg.classList.toggle('active', DAYLIGHT_DOCK_ENABLED);
+    });
+
+    btnWireframe.addEventListener('click', () => {
+      WIREFRAME_XRAY_ENABLED = !WIREFRAME_XRAY_ENABLED;
+      btnWireframe.classList.toggle('active', WIREFRAME_XRAY_ENABLED);
+      Object.values(MATERIALS).forEach((m) => {
+        m.wireframe = WIREFRAME_XRAY_ENABLED;
+      });
+    });
+
+    const CAM_PRESETS = {
+      overview: { pos: new THREE.Vector3(23.5, 11.8, 22.0), target: new THREE.Vector3(0.5, 0.2, 0) },
+      hangar: { pos: new THREE.Vector3(5.8, 1.4, 9.8), target: new THREE.Vector3(2.2, -0.3, 2.8) },
+      prow: { pos: new THREE.Vector3(22.0, 5.2, 8.5), target: new THREE.Vector3(12.5, 0.2, 0) },
+      bridge: { pos: new THREE.Vector3(3.5, 6.2, 8.8), target: new THREE.Vector3(-2.5, 2.2, 0) },
+      wings: { pos: new THREE.Vector3(4.5, 7.5, 13.5), target: new THREE.Vector3(-2.6, 0, 5.2) },
+      reactor: { pos: new THREE.Vector3(5.2, -6.4, 8.8), target: new THREE.Vector3(-1.2, -2.0, 0) },
+      engines: { pos: new THREE.Vector3(-21.5, 5.8, 10.5), target: new THREE.Vector3(-12.5, 0.2, 0) }
+    };
+
+    document.querySelectorAll('.cam-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const preset = CAM_PRESETS[btn.dataset.cam];
+        if (preset) {
+          cameraTransition = {
+            pos: preset.pos.clone(),
+            target: preset.target.clone(),
+            alpha: 0
+          };
+        }
+      });
+    });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // ============================================================================
+    // MASTER SHIP KINEMATICS, GEAR-MESH, SWARM SORTIE & ACTUATOR SOLVER LOOP
+    // ============================================================================
+    const clock = new THREE.Clock();
+    let shipTime = 0;
+    let swarmTime = 0;
+    let smoothedExplode = 0;
+    const tmpWorldA = new THREE.Vector3();
+    const tmpWorldB = new THREE.Vector3();
+
+    // Pre-allocated vectors & matrices for 320-ship Swarm kinematics
+    const swarmPosNow = new THREE.Vector3();
+    const swarmPosAhead = new THREE.Vector3();
+    const swarmPosBehind = new THREE.Vector3();
+    const swarmForward = new THREE.Vector3();
+    const swarmUp = new THREE.Vector3();
+    const swarmRight = new THREE.Vector3();
+    const swarmRotMat = new THREE.Matrix4();
+    const swarmInstanceMat = new THREE.Matrix4();
+    const swarmScaleVec = new THREE.Vector3();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const dt = Math.min(clock.getDelta(), 0.05);
+      shipTime += dt * DRIVE_SPEED_MULTIPLIER;
+      swarmTime += dt * SWARM_SORTIE_SPEED;
+      smoothedExplode = THREE.MathUtils.lerp(smoothedExplode, EXPLODED_VIEW_FACTOR, 0.08);
+
+      // Subtle deep-space starfield rotation
+      starFieldPoints.rotation.y = shipTime * 0.008;
+
+      if (cameraTransition) {
+        cameraTransition.alpha += dt * 2.5;
+        const k = Math.min(1, cameraTransition.alpha);
+        camera.position.lerp(cameraTransition.pos, k * 0.14);
+        controls.target.lerp(cameraTransition.target, k * 0.14);
+        if (k >= 1) cameraTransition = null;
+      }
+
+      let morph = MANUAL_MORPH_VALUE;
+      if (AUTO_MORPH_ENABLED) {
+        morph = 0.5 + 0.5 * Math.sin(shipTime * 0.42);
+        sliderMorph.value = morph;
+        valMorph.textContent = morph.toFixed(2);
+      }
+
+      const modeFactor =
+        ACTIVE_SHIP_MODE === 0 ? 0.08 : ACTIVE_SHIP_MODE === 1 ? 0.85 : ACTIVE_SHIP_MODE === 2 ? 1.0 : 1.15;
+      const effectiveMorph = morph * modeFactor;
+
+      // 1. INTERNAL CENTRIFUGE RINGS (56T HUB GEAR : 4x14T PINIONS = EXACT 4.0:1 RATIO)
+      internalCentrifuges.forEach((ic) => {
+        const thetaWheel = shipTime * 0.65 * ic.dir;
+        ic.wheel.rotation.z = thetaWheel;
+        ic.pinions.forEach((p) => {
+          p.mesh.rotation.z = -(56 / 14) * thetaWheel + Math.PI / 14;
+        });
+      });
+
+      // 2. THIRTY-TWO SCULPTED ARTICULATED WEDGE GLACIS ARMOR PLATES & PANTOGRAPH HYDRAULICS
+      articulatedHullPlates.forEach((hp) => {
+        const wave = Math.sin(shipTime * 2.4 - hp.index * 0.55) * 0.045 * effectiveMorph;
+        const deployLift = (effectiveMorph * 0.28 + smoothedExplode * 1.45) * hp.ySide;
+        const deploySpread = (effectiveMorph * 0.22 + smoothedExplode * 1.25) * hp.zSide;
+
+        const hCenter = getHullHalfHeightAtX(hp.xCenter);
+        hp.mountGroup.position.y = hp.ySide * (hCenter * 0.65) + deployLift;
+        hp.mountGroup.position.z = hp.zSide * 0.52 + deploySpread;
+
+        const flareAngle = hp.baseSlope + hp.ySide * hp.zSide * (effectiveMorph * 0.18 + wave);
+        hp.plateHolder.rotation.x = flareAngle;
+
+        if (hp.hydraulic) {
+          hp.mountGroup.updateWorldMatrix(true, true);
+          hp.anchorHull.getWorldPosition(tmpWorldA);
+          hp.anchorPlate.getWorldPosition(tmpWorldB);
+          hp.mountGroup.worldToLocal(tmpWorldA);
+          hp.mountGroup.worldToLocal(tmpWorldB);
+          hp.hydraulic.update(tmpWorldA, tmpWorldB);
+        }
+      });
+
+      // 3. TWIN-FORKED SPEARHEAD PROW RACK-AND-PINION MANDIBLES & SPINAL ACCELERATOR
+      bowProwGroup.position.x = 11.5 + smoothedExplode * 1.8;
+
+      const thetaProwPinion = effectiveMorph * 0.85;
+      const prowLinearShift = R_PROW_PINION * thetaProwPinion;
+
+      prowMandibles.forEach((pm) => {
+        pm.mandibleGroup.position.z = pm.zSide * (prowLinearShift + smoothedExplode * 1.2);
+        pm.pinions.forEach((pMesh) => {
+          pMesh.rotation.z = pm.zSide * thetaProwPinion - Math.PI * 0.5;
+        });
+      });
+
+      fluxRings.forEach((fr) => {
+        const pulse = Math.sin(shipTime * 8.0 - fr.idx * 0.65);
+        fr.mesh.position.x = fr.baseX + pulse * 0.12 * effectiveMorph;
+        fr.mesh.scale.setScalar(1.0 + Math.max(0, pulse) * 0.18 * effectiveMorph);
+      });
+
+      // 4. COMMAND CITADEL, 4 SUPERFIRING TRIPLE TURRETS (32T:16T) & 20 VLS MISSILE CELLS
+      citadelTowerGroup.position.y = 1.85 + smoothedExplode * 1.5;
+      radarMasts.forEach((rm) => {
+        rm.mastPivot.rotation.y = shipTime * 2.2 * rm.dir;
+      });
+
+      heavyTurrets.forEach((ht) => {
+        ht.barbetteGroup.position.y = ht.baseY + (ht.invert ? -1 : 1) * smoothedExplode * 1.2;
+
+        const targetYaw =
+          ACTIVE_SHIP_MODE === 1
+            ? Math.sin(shipTime * 0.75 + ht.idx) * 0.95
+            : Math.sin(shipTime * 0.5 + ht.idx) * 0.35 * effectiveMorph;
+
+        ht.turretHousePivot.rotation.y = targetYaw;
+        ht.pinionMesh.rotation.z = -(TURRET_RING_T / TURRET_PIN_T) * targetYaw + Math.PI / TURRET_PIN_T;
+        ht.cradlePivot.rotation.z = 0.12 + 0.32 * effectiveMorph + 0.08 * Math.sin(shipTime * 1.8 + ht.idx);
+
+        ht.barrels.forEach((b) => {
+          const cycle = (shipTime * 2.8 + b.offsetPhase) % (Math.PI * 2);
+          const recoilKick = cycle < 0.8 ? Math.sin((cycle / 0.8) * Math.PI) * 0.42 * effectiveMorph : 0;
+          b.slide.position.x = -recoilKick;
+        });
+      });
+
+      // 20 VLS Missile Silos
+      vlsCells.forEach((vc) => {
+        const wave = Math.max(0, Math.sin(shipTime * 2.2 - vc.idx * 0.3));
+        const openAmt = Math.min(1, effectiveMorph * 1.15);
+        vc.hatchPivot.rotation.x = vc.zSide * openAmt * 1.45;
+        vc.missileCanister.position.y = -0.38 + openAmt * (0.45 + 0.22 * wave);
+      });
+
+      // 12 Folding Aft Cryo-Radiator Vanes & 6 Active Carrier Flight Hangar Bays
+      dorsalRadiatorFins.forEach((rf) => {
+        const fold = (1.0 - Math.min(1, effectiveMorph)) * 1.12;
+        rf.finPivot.rotation.z = -rf.ySide * fold + Math.sin(shipTime * 2.0 + rf.pairIdx) * 0.06;
+      });
+
+      hangarBays.forEach((hb, hIdx) => {
+        hb.bayGroup.position.z = hb.baseZ + hb.zSide * smoothedExplode * 1.15;
+        // Keep hangar doors open so the 320 patrol craft can launch and recover continuously
+        hb.blastDoorPivot.rotation.x = -hb.zSide * (0.95 + 0.35 * effectiveMorph);
+        hb.gantryCarriage.position.x = Math.sin(shipTime * 1.4 + hIdx) * (hb.len * 0.34);
+      });
+
+      // 4B. 8 BROADSIDE CIWS GATTLING SPONSONS (24T:12T) & VENTRAL SINGULARITY REACTOR
+      ciwsSponsons.forEach((cs) => {
+        cs.sponsonGroup.position.z = cs.baseZ + cs.zSide * smoothedExplode * 1.25;
+        const yaw = Math.sin(shipTime * 1.6 + cs.phase) * 0.65;
+        cs.yawPivot.rotation.y = yaw;
+        cs.pinMesh.rotation.z = -(24 / 12) * yaw + Math.PI / 12;
+        cs.gattlingPivot.rotation.z = shipTime * 16.0 * cs.zSide;
+      });
+
+      ventralReactorGroup.position.y = -2.05 - smoothedExplode * 1.4;
+      reactorGimbalOuter.rotation.x = shipTime * 1.3;
+      reactorGimbalOuter.rotation.y = Math.sin(shipTime * 0.7) * 0.4;
+      reactorGimbalInner.rotation.y = -shipTime * 1.9;
+      reactorGimbalInner.rotation.z = Math.cos(shipTime * 0.9) * 0.5;
+      singularitySphere.scale.setScalar(1.0 + Math.sin(shipTime * 6.0) * 0.1);
+
+      reactorPistons.forEach((rp) => {
+        rp.plunger.position.x = 1.92 + Math.sin(shipTime * 5.0 + rp.ang) * 0.26;
+      });
+
+      // 5. VARIABLE-SWEEP STRIKE WINGS (36T:18T SECTOR GEARS + SLATS, AIRBRAKES & VTOL PODS)
+      let sweepDeg = 18.0;
+      strikeWings.forEach((sw) => {
+        sw.wingSponsonGroup.position.z = sw.zSide * (3.15 + smoothedExplode * 1.6);
+
+        const thetaWingSweep = -0.42 + effectiveMorph * 0.72 + 0.04 * Math.sin(shipTime * 1.5);
+        sweepDeg = Math.round(THREE.MathUtils.radToDeg(Math.abs(thetaWingSweep)) * 10) / 10;
+        sw.wingPivot.rotation.z = thetaWingSweep;
+        sw.driverPivot.rotation.z = Math.PI / WING_DRV_T - (WING_SEC_T / WING_DRV_T) * thetaWingSweep;
+
+        sw.internalWingGears.forEach((ig) => {
+          ig.mesh.rotation.z = shipTime * 3.8 * ig.dir + ig.phase * (Math.PI / 16);
+        });
+
+        sw.leadingSlatPivot.position.y = -1.25 - effectiveMorph * 0.26;
+        const brakeSplit = 0.08 + effectiveMorph * 0.42;
+        sw.upperFlapPivot.rotation.x = brakeSplit;
+        sw.lowerFlapPivot.rotation.x = -brakeSplit;
+        sw.vtolPodPivot.rotation.z = -thetaWingSweep * 0.8 + Math.sin(shipTime * 2.0) * 0.22;
+
+        sw.wingSponsonGroup.updateWorldMatrix(true, true);
+        sw.hullAnchor.getWorldPosition(tmpWorldA);
+        sw.wingAnchor.getWorldPosition(tmpWorldB);
+        sw.wingSponsonGroup.worldToLocal(tmpWorldA);
+        sw.wingSponsonGroup.worldToLocal(tmpWorldB);
+        sw.wingHydraulic.update(tmpWorldA, tmpWorldB);
+      });
+
+      // 6. SIX STERN PLANETARY FUSION THRUSTERS & 16-PETAL TURKEY-FEATHER NOZZLES
+      sternArrayGroup.position.x = -11.8 - smoothedExplode * 2.0;
+
+      propulsionUnits.forEach((pu) => {
+        const dir = pu.eIdx % 2 === 0 ? 1 : -1;
+        pu.unitGroup.position.y = pu.baseY + Math.sign(pu.baseY) * smoothedExplode * 0.9;
+        pu.unitGroup.position.z = pu.baseZ + Math.sign(pu.baseZ) * smoothedExplode * 1.2;
+
+        const thetaS = shipTime * 4.2 * dir;
+        const thetaR = -shipTime * 0.8 * dir;
+        const thetaC = (ENG_SUN_T * thetaS + ENG_RING_T * thetaR) / (ENG_SUN_T + ENG_RING_T);
+
+        pu.sunMesh.rotation.z = thetaS;
+        pu.ringMesh.rotation.z = thetaR + Math.PI / ENG_RING_T;
+        pu.carrierGroup.rotation.z = thetaC;
+
+        const planetLocal = -(thetaS - thetaC) * (ENG_SUN_T / ENG_PLANET_T) + Math.PI / ENG_PLANET_T;
+        pu.planets.forEach((pMesh) => {
+          pMesh.rotation.z = planetLocal;
+        });
+
+        pu.fan1.rotation.x = shipTime * 6.5 * dir;
+        pu.fan2.rotation.x = -shipTime * 6.5 * dir;
+        pu.unisonRing.rotation.x = Math.sin(shipTime * 2.5) * 0.45;
+
+        pu.petals.forEach((np) => {
+          const ripple = Math.sin(shipTime * 4.2 + np.phi * 2.0) * 0.08;
+          np.petalPivot.rotation.z = -0.16 + effectiveMorph * 0.36 + ripple;
+        });
+      });
+
+      // 7. UPDATE ALL 320 TINY AUTONOMOUS PATROL STRIKE CRAFT (LAUNCH -> PATROL -> DOCK)
+      let launchingCount = 0;
+      let patrollingCount = 0;
+      let dockingCount = 0;
+
+      for (let i = 0; i < PATROL_SWARM_COUNT; i++) {
+        const agent = swarmAgents[i];
+        const u = (swarmTime * agent.cycleSpeed + agent.id / PATROL_SWARM_COUNT) % 1.0;
+        const uAhead = (u + 0.004) % 1.0;
+        const uBehind = (u + 0.986) % 1.0;
+
+        if (u < 0.13) launchingCount++;
+        else if (u > 0.87) dockingCount++;
+        else patrollingCount++;
+
+        evaluateSwarmAgentPosition(agent, u, swarmPosNow);
+        evaluateSwarmAgentPosition(agent, uAhead, swarmPosAhead);
+        evaluateSwarmAgentPosition(agent, uBehind, swarmPosBehind);
+
+        // Compute tangent velocity heading (+X of micro-fighter points along velocity)
+        swarmForward.subVectors(swarmPosAhead, swarmPosNow);
+        if (swarmForward.lengthSq() < 1e-8) swarmForward.set(1, 0, 0);
+        swarmForward.normalize();
+
+        // Bank/roll the tiny fighter into turns
+        const bankAngle = Math.sin(u * Math.PI * 6 + agent.phaseOffset) * 0.55;
+        swarmUp.set(0, Math.cos(bankAngle), Math.sin(bankAngle)).normalize();
+        swarmRight.crossVectors(swarmUp, swarmForward).normalize();
+        swarmUp.crossVectors(swarmForward, swarmRight).normalize();
+
+        swarmRotMat.makeBasis(swarmForward, swarmUp, swarmRight);
+        swarmInstanceMat.copy(swarmRotMat);
+        swarmScaleVec.setScalar(agent.scale);
+        swarmInstanceMat.scale(swarmScaleVec);
+        swarmInstanceMat.setPosition(swarmPosNow);
+
+        swarmHullInstanced.setMatrixAt(i, swarmInstanceMat);
+        swarmCanopyInstanced.setMatrixAt(i, swarmInstanceMat);
+        swarmFlareInstanced.setMatrixAt(i, swarmInstanceMat);
+
+        // Update dynamic 3D plasma contrail segment behind each tiny ship
+        trailPositions[i * 6 + 0] = swarmPosNow.x;
+        trailPositions[i * 6 + 1] = swarmPosNow.y;
+        trailPositions[i * 6 + 2] = swarmPosNow.z;
+        trailPositions[i * 6 + 3] = swarmPosBehind.x;
+        trailPositions[i * 6 + 4] = swarmPosBehind.y;
+        trailPositions[i * 6 + 5] = swarmPosBehind.z;
+      }
+
+      swarmHullInstanced.instanceMatrix.needsUpdate = true;
+      swarmCanopyInstanced.instanceMatrix.needsUpdate = true;
+      swarmFlareInstanced.instanceMatrix.needsUpdate = true;
+      trailGeo.attributes.position.needsUpdate = true;
+
+      // Update Live Carrier Dreadnought HUD Telemetry
+      hudSwarmEl.textContent = `${PATROL_SWARM_COUNT} CRAFT`;
+      hudSortieEl.textContent = `${launchingCount} LAUNCH / ${patrollingCount} CAP / ${dockingCount} DOCK`;
+      hudSweepEl.textContent = `${sweepDeg.toFixed(1)}°`;
+      hudRailgunEl.textContent = effectiveMorph > 0.45 ? 'FIRING SALVO' : 'STANDBY';
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
